@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faSignOutAlt, faUser } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/router';
-import { useAuth } from '../pages/authContext'; // Adjust the path based on your project structure
+import { useAuth } from '../pages/authContext';
 
 const BottomBar = () => {
   const { user, logout } = useAuth();
@@ -12,66 +10,54 @@ const BottomBar = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      // Show the snackbar after logout
       setIsSnackbarOpen(true);
-      // Redirect to home page after a short delay
       setTimeout(() => {
-        router.push('/'); // Change this to the appropriate home page URL
+        router.push('/');
       }, 2000);
     } catch (error) {
       console.error('Logout error:', error.message);
     }
   };
 
-  // Snackbar close handler
   const closeSnackbar = () => {
     setIsSnackbarOpen(false);
   };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-md flex justify-around items-center max-w-[480px] mx-auto">
-      {user ? (
-        // If the user is logged in, show the profile link
-        <div
-          className="text-red-800 text-center cursor-pointer"
-          onClick={() => router.push('/Profile')}
-        >
-          <FontAwesomeIcon icon={faUser} size="2x" />
-          <p className="text-xs">Profile</p>
-        </div>
-      ) : (
-        // If the user is not logged in, clicking on the profile link redirects to login
-        <div
-          className="text-red-800 text-center cursor-pointer"
-          onClick={() => router.push('/Login')}
-        >
-          <FontAwesomeIcon icon={faUser} size="2x" />
-          <p className="text-xs">Login</p>
-        </div>
-      )}
-
-      <div
-        className="text-red-800 text-center cursor-pointer"
-        onClick={() => router.push('/')}
-      >
-        <FontAwesomeIcon icon={faHome} size="2x" />
-        <p className="text-xs">Home</p>
-      </div>
-      <div
-        className="text-red-800 text-center cursor-pointer"
-        onClick={handleLogout}
-      >
-        <FontAwesomeIcon icon={faSignOutAlt} size="2x" />
-        <p className="text-xs">Logout</p>
-      </div>
-
-      {/* Snackbar for logout notification */}
-      {isSnackbarOpen && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white py-2 px-4 rounded-md shadow-md">
-          Anda telah logout. Terima kasih!
-          <button className="ml-4 text-white" onClick={closeSnackbar}>
-            Tutup
+      <div className="flex items-center justify-center">
+        {user ? (
+          <button className="flex flex-col items-center justify-center w-12 h-12 rounded-full hover:bg-gray-300 focus:outline-none" onClick={() => router.push('/Profile')}>
+            <img src="images/profile_nusa.png" alt="Profile" className="w-6 h-6" />
           </button>
+        ) : (
+          <button className="flex flex-col items-center justify-center w-12 h-12 rounded-full hover:bg-gray-300 focus:outline-none" onClick={() => router.push('/Login')}>
+            <img src="images/profile_nusa.png" alt="Login" className="w-6 h-6" />
+          </button>
+        )}
+      </div>
+
+      {/* Button Home with half of it outside BottomBar */}
+      <div className="flex items-center justify-center relative">
+        <button className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 flex flex-col items-center justify-center w-16 h-16 focus:outline-none" style={{ backgroundImage: 'url("images/heksagon.png")', backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '10px' }} onClick={() => router.push('/')}>
+          <img src="images/home_nusa.png" alt="Home" className="w-6 h-6" />
+        </button>
+      </div>
+
+      <div className="flex items-center justify-center">
+        <button className="flex flex-col items-center justify-center w-12 h-12 rounded-full hover:bg-gray-300 focus:outline-none" onClick={handleLogout}>
+          <img src="images/logout_nusa.png" alt="Logout" className="w-6 h-6" />
+        </button>
+      </div>
+
+      {isSnackbarOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-4 rounded-md shadow-md text-center">
+            <p>Anda telah logout. Terima kasih!</p>
+            <button className="mt-2 bg-green-500 text-white py-2 px-4 rounded-md shadow-md" onClick={closeSnackbar}>
+              Tutup
+            </button>
+          </div>
         </div>
       )}
     </div>

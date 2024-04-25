@@ -39,21 +39,21 @@ const NewsList = () => {
     };
     const truncateDescription = (description) => {
         // Ambil 15 karakter pertama dan tambahkan titik-titik jika lebih dari itu
-        return description.length > 35 ? description.substring(0, 35) + '...' : description;
+        return description.length > 50 ? description.substring(0, 50) + '...' : description;
     };
 
     return (
         <div>
             {newsList.map((news) => (
-                <div key={news.id} className="mb-8">
-                    <div key={news.id} className="mb-8" onClick={() => navigateToDetail(news.id)}>
-                        <div className="max-w-sm mx-auto bg-white rounded-md overflow-hidden shadow-md cursor-pointer">
+                <div key={news.id} className="mb-2">
+                    <div key={news.id} className="mb-2" onClick={() => navigateToDetail(news.id)}>
+                        <div className="max-w-md mx-auto bg-white rounded-md overflow-hidden shadow-md cursor-pointer">
                             <img
                                 src={`https://api.nusa-sarat.nuncorp.id/storage${news.thumbnail}`}
                                 alt={news.title}
                                 className="w-full h-40 object-cover"
                             />
-                            <div className="p-4">
+                            <div className="p-2">
                                 <h2 className="text-lg font-semibold mb-2">{news.title}</h2>
                                 <p className="text-gray-600 mb-4">{truncateDescription(news.description)}</p>
                             </div>

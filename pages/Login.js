@@ -24,10 +24,11 @@ const LoginPage = () => {
         <Layout>
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
                 {/* Logo Web Anda */}
-                <img src="images/logo SAIM 1.png" alt="Logo Web" className="w-50 h-50 mb-4" />
+                <img src="images/logo_SAIM.png" alt="Logo Web" className="w-50 h-50 mb-4" />
 
                 {/* Sambutan */}
-                <p className="text-xl text-center font-bold mb-4">Assalamualaikum, Silahkan Login Untuk Melanjutkan</p>
+                <p className="text-xl text-center font-medium mb-1">Assalamualaikum </p>
+                <p className="text-xl text-center font-medium mb-4">Silahkan Login Untuk Melanjutkan</p>
                 {/* Form Login */}
                 <LoginForm onLogin={handleLogin} />
             </div>
