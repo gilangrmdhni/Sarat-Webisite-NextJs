@@ -13,21 +13,7 @@ const Navbar = () => {
   // State for managing snackbar visibility
   const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // Show the snackbar after logout
-      setIsSnackbarOpen(true);
-      // Redirect to login page after a short delay
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-    } catch (error) {
-      console.error('Logout error:', error.message);
-    }
-  };
 
-  // Snackbar close handler
   const closeSnackbar = () => {
     setIsSnackbarOpen(false);
   };
@@ -46,7 +32,7 @@ const Navbar = () => {
           {/* Logout/signout button with icon */}
           <button
             className="text-white cursor-pointer"
-            onClick={handleLogout}
+          // onClick={handleLogout}
           >
             <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
           </button>

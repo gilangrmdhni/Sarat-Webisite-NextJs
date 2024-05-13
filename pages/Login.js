@@ -1,22 +1,30 @@
-// pages/login.js
-import React from 'react';
+// pages/Login.js
+import React, { useEffect } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 import LoginForm from '../components/LoginForm';
 import { useAuth } from './authContext';
-import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 
 const LoginPage = () => {
-    const { login } = useAuth();
+    const { user, login } = useAuth();
     const router = useRouter();
+    const [showError, setShowError] = useState(false);
+
+    useEffect(() => {
+        // Jika pengguna telah login, arahkan ke halaman beranda
+        if (user) {
+            router.push('/HomePage');
+        }
+    }, [user]); // Pastikan untuk menyertakan user sebagai dependensi
 
     const handleLogin = async ({ email, password }) => {
         try {
             await login({ email, password });
-
-            // Jika login berhasil, arahkan pengguna ke halaman lain
-            router.push('/HomePage');
         } catch (error) {
             console.error('Login error:', error.message);
+            setError('Email atau password salah. Silakan coba lagi.');
+            setShowError(true);
         }
     };
 

@@ -11,9 +11,8 @@ const BottomBar = () => {
     try {
       await logout();
       setIsSnackbarOpen(true);
-      setTimeout(() => {
-        router.push('/');
-      }, 2000);
+      // Mengarahkan pengguna ke halaman login
+      router.push('/Login');
     } catch (error) {
       console.error('Logout error:', error.message);
     }

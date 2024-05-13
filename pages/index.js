@@ -1,8 +1,9 @@
 // pages/index.js
-import HomePage from './HomePage';
+// import HomePage from './HomePage';
+import LoginPage from './Login';
 
 const IndexPage = () => {
-  return <HomePage />;
+  return <LoginPage />;
 };
 
 export default IndexPage;

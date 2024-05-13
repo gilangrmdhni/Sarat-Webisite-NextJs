@@ -19,7 +19,7 @@ const ImageSlider = ({ images }) => {
       <img
         src={images[currentImageIndex]}
         alt={`Slide ${currentImageIndex + 1}`}
-        className="w-full h-auto md:max-h-22" // Ukuran penuh pada layar kecil, maksimum 22 pada layar medium (md)
+        className="w-full h-auto md:max-h-22"
       />
 
       <div className="absolute top-1/2 left-0 transform -translate-y-1/2">
