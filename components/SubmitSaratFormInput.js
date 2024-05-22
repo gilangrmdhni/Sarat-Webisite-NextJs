@@ -35,7 +35,7 @@ const SubmitSaratFormInput = ({ formData, setFormData, sessionOptions, instituti
                         </div>
 
                         <div className="mb-4">
-                            <label htmlFor="parent_name" className="block text-sm font-semibold text-gray-600 mb-1">Nama Orang Tua:</label>
+                            <label htmlFor="parent_name" className="block text-sm font-semibold text-gray-600 mb-1">Nama Wali Murid:</label>
                             <input
                                 type="text"
                                 id="parent_name"
@@ -58,7 +58,7 @@ const SubmitSaratFormInput = ({ formData, setFormData, sessionOptions, instituti
                         </div>
 
                         <div className="mb-4">
-                            <label htmlFor="student_class" className="block text-sm font-semibold text-gray-600 mb-1">Kelas Siswa:</label>
+                            <label htmlFor="student_class" className="block text-sm font-semibold text-gray-600 mb-1">Kelas Murid:</label>
                             <input
                                 type="text"
                                 id="student_class"
@@ -70,7 +70,7 @@ const SubmitSaratFormInput = ({ formData, setFormData, sessionOptions, instituti
                         </div>
 
                         <div className="mb-4">
-                            <label htmlFor="parent_type" className="block text-sm font-semibold text-gray-600 mb-1">Pilih Wali:</label>
+                            <label htmlFor="parent_type" className="block text-sm font-semibold text-gray-600 mb-1">Status Wali Murid:</label>
                             <select
                                 id="parent_type"
                                 name="parent_type"
@@ -78,14 +78,14 @@ const SubmitSaratFormInput = ({ formData, setFormData, sessionOptions, instituti
                                 onChange={handleChange}
                                 className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                             >
-                                <option value="" disabled>Pilih Wali</option>
+                                <option value="" disabled>Status Wali Murid</option>
                                 <option value="Ayah">Ayah</option>
                                 <option value="Bunda">Bunda</option>
                             </select>
                         </div>
 
                         <div className="mb-4">
-                            <label htmlFor="parent_phone" className="block text-sm font-semibold text-gray-600 mb-1">Nomor Hp Orang Tua:</label>
+                            <label htmlFor="parent_phone" className="block text-sm font-semibold text-gray-600 mb-1">Nomor HP Wali Murid:</label>
                             <input
                                 type="text"
                                 id="parent_phone"
@@ -147,7 +147,7 @@ const SubmitSaratFormInput = ({ formData, setFormData, sessionOptions, instituti
                         </div>
 
                         <div className="mb-4">
-                            <label htmlFor="resume" className="block text-sm font-semibold text-gray-600 mb-1">Masukan Resume:</label>
+                            <label htmlFor="resume" className="block text-sm font-semibold text-gray-600 mb-1">Resume:</label>
                             <textarea
                                 id="resume"
                                 name="resume"
