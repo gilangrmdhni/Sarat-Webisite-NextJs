@@ -33,6 +33,7 @@ const PreTest = () => {
     const [sessionOptions, setSessionOptions] = useState([]);
     const [institutionOptions, setInstitutionOptions] = useState([]);
     const [questions, setQuestions] = useState([]);
+    const [fileInputs, setFileInputs] = useState({});
 
     const fetchQuestions = async (sessionDetailId) => {
         try {
@@ -92,8 +93,7 @@ const PreTest = () => {
 
                 if (response.ok) {
                     const institutionData = await response.json();
-                    const updatedInstitutionData = [...institutionData.body, { id: 5, name: 'Squad AIM' }];
-                    setInstitutionOptions(updatedInstitutionData);
+                    setInstitutionOptions(institutionData.body);
                 } else {
                     console.error('API Error:', response.status, response.statusText);
                 }
@@ -111,6 +111,14 @@ const PreTest = () => {
         setFormData({
             ...formData,
             [name]: value,
+        });
+    };
+
+    const handleFileChange = (e, questionId) => {
+        const file = e.target.files[0];
+        setFileInputs({
+            ...fileInputs,
+            [questionId]: file,
         });
     };
 
@@ -171,39 +179,40 @@ const PreTest = () => {
         try {
             const token = localStorage.getItem('token');
             let dataAnswers = [];
+            let formDataToSend = new FormData();
             questions.forEach((question) => {
                 const selectedAnswer = formData[`question_${question.id}`];
                 dataAnswers.push({
                     question_id: question.id,
-                    answer: selectedAnswer,
+                    answer: selectedAnswer || '',
                 });
+
+                if (fileInputs[question.id]) {
+                    formDataToSend.append(`file_question_${question.id}`, fileInputs[question.id]);
+                }
             });
 
-            let data = JSON.stringify({
-                session_detail_id: parseInt(formData.session_detail_id),
-                institution_id: parseInt(formData.institution_id),
-                attendance_type: formData.attendance_type,
-                flag: 'PRE_TEST',
-                parent_type: formData.parent_type,
-                parent_phone: formData.parent_phone,
-                start_time: formData.start_time,
-                end_time: formData.end_time,
-                reason_late: formData.reason_late,
-                reason_attend_online: formData.reason_attend_online,
-                reason_absent: formData.reason_absent,
-                squad: formData.squad,
-                question_answers: dataAnswers,
-            });
+            formDataToSend.append('session_detail_id', parseInt(formData.session_detail_id));
+            formDataToSend.append('institution_id', parseInt(formData.institution_id));
+            formDataToSend.append('attendance_type', formData.attendance_type);
+            formDataToSend.append('flag', 'PRE_TEST');
+            formDataToSend.append('parent_type', formData.parent_type);
+            formDataToSend.append('parent_phone', formData.parent_phone);
+            formDataToSend.append('start_time', formData.start_time);
+            formDataToSend.append('end_time', formData.end_time);
+            formDataToSend.append('reason_late', formData.reason_late);
+            formDataToSend.append('reason_attend_online', formData.reason_attend_online);
+            formDataToSend.append('reason_absent', formData.reason_absent);
+            formDataToSend.append('squad', formData.squad);
 
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
                 url: 'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                data: data,
+                data: formDataToSend,
             };
 
             axios.request(config)
@@ -419,7 +428,7 @@ const PreTest = () => {
                             </>
                         )}
                         {/* Page 2 */}
-                        {currentPage === 2 && formData.institution_id === 5 && (
+                        {currentPage === 2 && formData.institution_id === '5' && (
                             <>
                                 <fieldset className="mb-4">
                                     <legend className="block text-sm font-semibold text-gray-600 mb-1">Squad</legend>
@@ -482,7 +491,7 @@ const PreTest = () => {
                                 </button>
                             </>
                         )}
-                        {currentPage === 2 && formData.institution_id !== 5 && (
+                        {currentPage === 2 && formData.institution_id !== '5' && (
                             <>
                                 {questions.map((question) => (
                                     <div key={question.id}>
@@ -496,6 +505,16 @@ const PreTest = () => {
                                                             name={`question_${question.id}`}
                                                             value={formData[`question_${question.id}`] || ''}
                                                             onChange={handleChange}
+                                                            className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
+                                                        />
+                                                    </li>
+                                                ) : question.question_type === 'UPLOAD' ? (
+                                                    <li>
+                                                        <input
+                                                            type="file"
+                                                            id={`file_question_${question.id}`}
+                                                            name={`file_question_${question.id}`}
+                                                            onChange={(e) => handleFileChange(e, question.id)}
                                                             className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                                         />
                                                     </li>
