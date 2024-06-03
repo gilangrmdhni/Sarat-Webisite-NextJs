@@ -40,10 +40,8 @@ const Profile = () => {
                             <label className="block text-sm font-semibold text-gray-600 mb-1">Nomor Telepon:</label>
                             <p className="text-gray-800">{user?.body?.phone}</p>
                         </div>
-                        {/* Tambahkan field lain sesuai kebutuhan */}
                     </div>
 
-                    {/* Tombol login jika belum login */}
                     {!user && (
                         <div className="mt-8 text-center">
                             <Link href="/login">

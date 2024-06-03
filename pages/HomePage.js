@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import SplashScreen from '../components/SplashScreen'; // Import komponen splash screen
+import SplashScreen from '../components/SplashScreen';
 import Layout from '../components/Layout';
 import Navbar from '../components/Navbar';
 import Slider from 'react-slick';
@@ -8,7 +8,6 @@ import 'slick-carousel/slick/slick-theme.css';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
-import NewsCard from '../components/NewsCard';
 import BottomBar from '../components/BottomBar';
 import Link from 'next/link';
 import { useAuth } from './authContext';
@@ -18,32 +17,28 @@ import NewsList from '@/components/NewsList';
 const HomePage = () => {
     const { user } = useAuth();
     const router = useRouter();
-    const [showSplash, setShowSplash] = useState(true); // State untuk mengontrol tampilan splash screen
+    const [showSplash, setShowSplash] = useState(true);
 
     useEffect(() => {
-        // Simulasikan delay selama 2 detik sebelum menampilkan konten utama
         const timer = setTimeout(() => {
             setShowSplash(false);
         }, 2000);
 
-        // Bersihkan timeout saat komponen unmount
         return () => clearTimeout(timer);
     }, []);
 
-    // Data dummy untuk slider
     const sliderImages = [
         '/images/slider1.png',
         '/images/slider2.png',
         '/images/slider3.png',
     ];
 
-    // Data dummy untuk Sarat images
     const saratImages = [
-        '/images/submit_nusa.png',
+        '/images/exam.png',
+        '/images/Accept.png',
         '/images/history_nusa.png',
     ];
 
-    // Settings untuk slider
     const settings = {
         dots: true,
         infinite: true,
@@ -90,53 +85,71 @@ const HomePage = () => {
                                         ))}
                                     </Slider>
                                 </div>
-                                <div className="mt-12 flex flex-wrap justify-around rounded-3xl">
+                                <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 px-4">
                                     {/* Card 1 - Submit Sarat */}
-                                    <Link href={user ? "/SubmitSarat" : "/Login"}>
-                                        <div className="w-full sm:w-34 bg-white shadow-md rounded-md overflow-hidden mb-4 relative flex flex-col">
-                                            <div className="relative h-36 w-full">
-                                                <Image
-                                                    src={saratImages[0]}
-                                                    alt="History Ilustrator"
-                                                    layout="fill"
-                                                    objectFit="cover"
-                                                    className="rounded-t-md"
-                                                />
+                                    <Link href={user ? "/Presensi" : "/Login"}>
+                                        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
+                                            <div className="flex items-center justify-center h-32">
+                                                <div className="relative h-40 w-40">
+                                                    <Image
+                                                        src={saratImages[1]}
+                                                        alt="Submit Sarat"
+                                                        layout="fill"
+                                                        objectFit="cover"
+                                                        className="rounded-t-lg"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="p-7 mt-2 bg-red-800 text-white rounded-tl-3xl rounded-tr-3xl flex items-left justify-between">
-                                                <h2 className="text-sm font-semibold mb-6">
-                                                    Submit Sarat
-                                                </h2>
-                                                <FontAwesomeIcon icon={faArrowRight} className="ml-1" style={{ width: '15px', height: '15px' }} />
-                                            </div>
-                                        </div>
-                                    </Link>
-                                    {/* Card 2 - History Sarat */}
-                                    <Link href={user ? "/HistorySarat" : "/Login"}>
-                                        <div className="w-full sm:w-34 bg-white shadow-md rounded-md overflow-hidden mb-4 relative flex flex-col">
-                                            <div className="relative h-36 w-full">
-                                                <Image
-                                                    src={saratImages[1]}
-                                                    alt="History Ilustrator"
-                                                    layout="fill"
-                                                    objectFit="cover"
-                                                    className="rounded-t-md"
-                                                />
-                                            </div>
-                                            <div className="p-7 mt-2 bg-red-800 text-white rounded-tl-3xl rounded-tr-3xl flex items-left justify-between">
-                                                <h2 className="text-sm font-semibold mb-6">
-                                                    History Sarat
-                                                </h2>
-                                                <FontAwesomeIcon icon={faArrowRight} className="ml-1" style={{ width: '15px', height: '15px' }} />
+                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
+                                                <h2 className="text-sm font-semibold">Presensi Sarat</h2>
+                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
                                             </div>
                                         </div>
                                     </Link>
+                                    {/* Card 2 - Pre-Test Sarat */}
+                                    <Link href={user ? "/PreTest" : "/Login"}>
+                                        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
+                                            <div className="flex items-center justify-center h-32">
+                                                <div className="relative h-40 w-40">
+                                                    <Image
+                                                        src={saratImages[0]}
+                                                        alt="Pre-Test Sarat"
+                                                        layout="fill"
+                                                        objectFit="cover"
+                                                        className="rounded-t-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
+                                                <h2 className="text-sm font-semibold">Pre-Test Sarat</h2>
+                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
+                                            </div>
+                                        </div>
+                                    </Link>
+                                    {/* Card 3 - History Sarat */}
+                                    {/* <Link href={user ? "/History" : "/Login"}>
+                                        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
+                                            <div className="flex items-center justify-center h-32">
+                                                <div className="relative h-20 w-20">
+                                                    <Image
+                                                        src={saratImages[2]}
+                                                        alt="History Sarat"
+                                                        layout="fill"
+                                                        objectFit="cover"
+                                                        className="rounded-t-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
+                                                <h2 className="text-sm font-semibold">History Sarat</h2>
+                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
+                                            </div>
+                                        </div>
+                                    </Link> */}
                                 </div>
-                                <div className="w-full mt-8 mb-4 bg-gray-200 h-0.5 rounded-sm"></div>
-                                <div className=' flex-wrap justify-around ml-3'>
-                                    <h1 className="text-2xl font-semibold mb-2">News</h1>
-                                </div>
-                                <div className='mb-28'>
+                                <div className="w-full mt-12 mb-6 bg-gray-200 h-0.5 rounded-sm"></div>
+                                <div className='flex flex-col items-start px-4'>
+                                    <h1 className="text-2xl font-semibold mb-4">News</h1>
                                     <NewsList />
                                 </div>
                             </div>

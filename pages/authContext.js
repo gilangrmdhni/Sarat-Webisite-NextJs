@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   // Fungsi untuk mendapatkan data pengguna berdasarkan token
   const fetchUserData = async (token) => {
     try {
-      const response = await fetch('https://api.nusa-saim.nuncorp.id/live/api/v1/user/profile', {
+      const response = await fetch('https://api.nusa-saim.nuncorp.id/prod/api/v1/user/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async ({ email, password }) => {
     try {
-      const response = await fetch('https://api.nusa-saim.nuncorp.id/live/api/v1/user/login', {
+      const response = await fetch('https://api.nusa-saim.nuncorp.id/prod/api/v1/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
