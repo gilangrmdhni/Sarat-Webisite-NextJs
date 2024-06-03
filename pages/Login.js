@@ -1,6 +1,5 @@
 // pages/Login.js
-import React, { useEffect } from 'react';
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import LoginForm from '../components/LoginForm';
 import { useAuth } from './authContext';
@@ -18,12 +17,12 @@ const LoginPage = () => {
         }
     }, [user]); // Pastikan untuk menyertakan user sebagai dependensi
 
-    const handleLogin = async ({ email, password }) => {
+    const handleLogin = async ({ username, password }) => {
         try {
-            await login({ email, password });
+            await login({ username, password });
         } catch (error) {
             console.error('Login error:', error.message);
-            setError('Email atau password salah. Silakan coba lagi.');
+            setError('Username atau password salah. Silakan coba lagi.');
             setShowError(true);
         }
     };

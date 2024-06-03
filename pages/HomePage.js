@@ -11,12 +11,10 @@ import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import BottomBar from '../components/BottomBar';
 import Link from 'next/link';
 import { useAuth } from './authContext';
-import { useRouter } from 'next/router';
 import NewsList from '@/components/NewsList';
 
 const HomePage = () => {
     const { user } = useAuth();
-    const router = useRouter();
     const [showSplash, setShowSplash] = useState(true);
 
     useEffect(() => {
@@ -85,7 +83,7 @@ const HomePage = () => {
                                         ))}
                                     </Slider>
                                 </div>
-                                <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 px-4">
+                                <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4 px-4">
                                     {/* Card 1 - Submit Sarat */}
                                     <Link href={user ? "/Presensi" : "/Login"}>
                                         <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
@@ -127,7 +125,7 @@ const HomePage = () => {
                                         </div>
                                     </Link>
                                     {/* Card 3 - History Sarat */}
-                                    {/* <Link href={user ? "/History" : "/Login"}>
+                                    <Link href={user ? "/HistorySarat" : "/Login"}>
                                         <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
                                             <div className="flex items-center justify-center h-32">
                                                 <div className="relative h-20 w-20">
@@ -145,11 +143,11 @@ const HomePage = () => {
                                                 <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
                                             </div>
                                         </div>
-                                    </Link> */}
+                                    </Link>
                                 </div>
                                 <div className="w-full mt-12 mb-6 bg-gray-200 h-0.5 rounded-sm"></div>
-                                <div className='flex flex-col items-start px-4'>
-                                    <h1 className="text-2xl font-semibold mb-4">News</h1>
+                                <h1 className="text-2xl font-semibold mb-4 ml-4">News</h1>
+                                <div className='flex flex-col items-center px-4'>
                                     <NewsList />
                                 </div>
                             </div>

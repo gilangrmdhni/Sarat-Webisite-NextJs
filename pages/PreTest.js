@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faUpload } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/router';
 import { useAuth } from './authContext';
 import axios from 'axios';
@@ -10,7 +10,7 @@ const PreTest = () => {
     const router = useRouter();
     const { user } = useAuth();
 
-    const user_id = user?.body?.id || null;
+    const user_id = user?.user_id || null;
     const [currentPage, setCurrentPage] = useState(1);
     const [formData, setFormData] = useState({
         session_detail_id: '',
@@ -24,10 +24,10 @@ const PreTest = () => {
         reason_late: '',
         institution_id: '',
         attendance_type: 'Hadir Offline',
-        online_presence: '',
-        offline_presence: '',
-        hardcoded_name_title: '',
-        session_answer_id: ''
+        reason_attend_online: '',
+        reason_absent: '',
+        squad: '',
+        session_answer_id: '',
     });
 
     const [sessionOptions, setSessionOptions] = useState([]);
@@ -36,8 +36,13 @@ const PreTest = () => {
 
     const fetchQuestions = async (sessionDetailId) => {
         try {
-            const apiUrl = `https://api.nusa-sarat.nuncorp.id/api/v1/question/filter?session_detail=${sessionDetailId}`;
-            const response = await fetch(apiUrl);
+            const token = localStorage.getItem('token');
+            const apiUrl = `https://api.nusa-sarat.nuncorp.id/api/v1/question/filter?session_detail=${sessionDetailId}&flag=PRE_TEST`;
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
 
             if (response.ok) {
                 const responseData = await response.json();
@@ -52,9 +57,15 @@ const PreTest = () => {
 
     useEffect(() => {
         const fetchSessionOptions = async () => {
+            const token = localStorage.getItem('token');
             try {
                 const apiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/session/active';
-                const response = await fetch(apiUrl, { method: 'GET' });
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
 
                 if (response.ok) {
                     const responseData = await response.json();
@@ -69,13 +80,20 @@ const PreTest = () => {
         };
 
         const fetchInstitutionOptions = async () => {
+            const token = localStorage.getItem('token');
             try {
                 const apiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/institution/filter';
-                const response = await fetch(apiUrl, { method: 'GET' });
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
 
                 if (response.ok) {
                     const institutionData = await response.json();
-                    setInstitutionOptions(institutionData.body);
+                    const updatedInstitutionData = [...institutionData.body, { id: 5, name: 'Squad AIM' }];
+                    setInstitutionOptions(updatedInstitutionData);
                 } else {
                     console.error('API Error:', response.status, response.statusText);
                 }
@@ -96,14 +114,6 @@ const PreTest = () => {
         });
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        setFormData({
-            ...formData,
-            resume_file: file,
-        });
-    };
-
     const handleNextPage = async () => {
         if (currentPage === 1) {
             setCurrentPage(currentPage + 1);
@@ -111,6 +121,7 @@ const PreTest = () => {
             setCurrentPage(currentPage + 1);
         } else if (currentPage === 3) {
             try {
+                const token = localStorage.getItem('token');
                 const firstApiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/session/resume/answer';
                 const firstFormData = new FormData();
 
@@ -124,6 +135,9 @@ const PreTest = () => {
 
                 const firstApiResponse = await fetch(firstApiUrl, {
                     method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
                     body: firstFormData,
                 });
 
@@ -155,27 +169,39 @@ const PreTest = () => {
         e.preventDefault();
 
         try {
+            const token = localStorage.getItem('token');
             let dataAnswers = [];
             questions.forEach((question) => {
-                const selectedChoice = formData[`question_${question.id}`];
+                const selectedAnswer = formData[`question_${question.id}`];
                 dataAnswers.push({
                     question_id: question.id,
-                    question_detail_id: parseInt(selectedChoice),
+                    answer: selectedAnswer,
                 });
             });
 
             let data = JSON.stringify({
-                user_id: user_id,
-                session_answer_id: parseInt(localStorage.getItem("sessionAnswerId")),
-                answers: dataAnswers,
+                session_detail_id: parseInt(formData.session_detail_id),
+                institution_id: parseInt(formData.institution_id),
+                attendance_type: formData.attendance_type,
+                flag: 'PRE_TEST',
+                parent_type: formData.parent_type,
+                parent_phone: formData.parent_phone,
+                start_time: formData.start_time,
+                end_time: formData.end_time,
+                reason_late: formData.reason_late,
+                reason_attend_online: formData.reason_attend_online,
+                reason_absent: formData.reason_absent,
+                squad: formData.squad,
+                question_answers: dataAnswers,
             });
 
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
-                url: 'https://api.nusa-sarat.nuncorp.id/api/v1/exams/answer',
+                url: 'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 data: data,
             };
@@ -185,8 +211,7 @@ const PreTest = () => {
                     console.log(JSON.stringify(response.data));
                 })
                 .catch((error) => {
-                    console.log(error);
-                    console.log('Second API Response:', error);
+                    console.error('Second API Response Error:', error);
                 });
 
         } catch (error) {
@@ -282,8 +307,8 @@ const PreTest = () => {
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                     >
                                         <option value="" disabled>Pilih Wali</option>
-                                        <option value="Ayah">Ayah</option>
-                                        <option value="Bunda">Bunda</option>
+                                        <option value="FATHER">Ayah</option>
+                                        <option value="MOTHER">Bunda</option>
                                     </select>
                                 </div>
                                 <div className="mb-4">
@@ -346,28 +371,28 @@ const PreTest = () => {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="online_presence" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Hadir Online (Diisi jika hadir secara online):</label>
+                                    <label htmlFor="reason_attend_online" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Hadir Online (Diisi jika hadir secara online):</label>
                                     <input
-                                        id="online_presence"
-                                        name="online_presence"
-                                        value={formData.online_presence}
+                                        type="text"
+                                        id="reason_attend_online"
+                                        name="reason_attend_online"
+                                        value={formData.reason_attend_online}
                                         onChange={handleChange}
-                                        rows="4"
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="offline_presence" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Alasan Tidak Hadir Sama Sekali di Hari Offline (Diisi jika tidak hadir baik offline maupun online):</label>
+                                    <label htmlFor="reason_absent" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Tidak Hadir Sama Sekali (Diisi jika tidak hadir baik offline maupun online):</label>
                                     <input
-                                        id="offline_presence"
-                                        name="offline_presence"
-                                        value={formData.offline_presence}
+                                        type="text"
+                                        id="reason_absent"
+                                        name="reason_absent"
+                                        value={formData.reason_absent}
                                         onChange={handleChange}
-                                        rows="4"
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                     />
                                 </div>
-
+                               
                                 <div className="mb-4">
                                     <label htmlFor="institution_id" className="block text-sm font-semibold text-gray-600 mb-1">Pilih Institusi:</label>
                                     <select
@@ -380,6 +405,7 @@ const PreTest = () => {
                                         <option value="" disabled>Pilih Institusi</option>
                                         {institutionOptions.map((institution) => (
                                             <option key={institution.id} value={institution.id}>{institution.name}</option>
+                                    
                                         ))}
                                     </select>
                                 </div>
@@ -393,19 +419,53 @@ const PreTest = () => {
                             </>
                         )}
                         {/* Page 2 */}
-                        {currentPage === 2 && (
+                        {currentPage === 2 && formData.institution_id === 5 && (
                             <>
-                                <div className="mb-4">
-                                    <label htmlFor="hardcoded_name" className="block text-sm font-semibold text-gray-600 mb-1">Nama Lengkap Berikut Gelar:</label>
-                                    <input
-                                        type="text"
-                                        id="hardcoded_name_title"
-                                        name="hardcoded_name_title"
-                                        value={formData.hardcoded_name}
-                                        onChange={handleChange}
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
-                                </div>
+                                <fieldset className="mb-4">
+                                    <legend className="block text-sm font-semibold text-gray-600 mb-1">Squad</legend>
+                                    <ul>
+                                        <li>
+                                            <input
+                                                type="radio"
+                                                id="squad_1"
+                                                name="squad"
+                                                value="Abu Hanifah"
+                                                onChange={handleChange}
+                                            />
+                                            <label htmlFor="squad_1" className="ml-2">Abu Hanifah</label>
+                                        </li>
+                                        <li>
+                                            <input
+                                                type="radio"
+                                                id="squad_2"
+                                                name="squad"
+                                                value="Syafi'i"
+                                                onChange={handleChange}
+                                            />
+                                            <label htmlFor="squad_2" className="ml-2">Syafi{"'"}i</label>
+                                        </li>
+                                        <li>
+                                            <input
+                                                type="radio"
+                                                id="squad_3"
+                                                name="squad"
+                                                value="Maliki"
+                                                onChange={handleChange}
+                                            />
+                                            <label htmlFor="squad_3" className="ml-2">Maliki</label>
+                                        </li>
+                                        <li>
+                                            <input
+                                                type="radio"
+                                                id="squad_4"
+                                                name="squad"
+                                                value="Hanbali"
+                                                onChange={handleChange}
+                                            />
+                                            <label htmlFor="squad_4" className="ml-2">Hanbali</label>
+                                        </li>
+                                    </ul>
+                                </fieldset>
                                 <button
                                     type="button"
                                     onClick={handleNextPage}
@@ -422,26 +482,37 @@ const PreTest = () => {
                                 </button>
                             </>
                         )}
-                        {/* Page 3 */}
-                        {currentPage === 3 && (
+                        {currentPage === 2 && formData.institution_id !== 5 && (
                             <>
                                 {questions.map((question) => (
                                     <div key={question.id}>
                                         <fieldset className="mb-4">
-                                            <legend className="block text-sm font-semibold text-gray-600 mb-1">{question.description}</legend>
+                                            <legend className="block text-sm font-semibold text-gray-600 mb-1">{question.question}</legend>
                                             <ul>
-                                                {question.question_details.map((choice) => (
-                                                    <li key={choice.id}>
-                                                        <input
-                                                            type="radio"
-                                                            id={`choice_${choice.id}`}
+                                                {question.question_type === 'ESSAY' ? (
+                                                    <li>
+                                                        <textarea
+                                                            id={`question_${question.id}`}
                                                             name={`question_${question.id}`}
-                                                            value={choice.id}
+                                                            value={formData[`question_${question.id}`] || ''}
                                                             onChange={handleChange}
+                                                            className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                                         />
-                                                        <label htmlFor={`choice_${choice.id}`} className="ml-2">{choice.description}</label>
                                                     </li>
-                                                ))}
+                                                ) : (
+                                                    question.question_details.map((choice) => (
+                                                        <li key={choice.id}>
+                                                            <input
+                                                                type="radio"
+                                                                id={`choice_${choice.id}`}
+                                                                name={`question_${question.id}`}
+                                                                value={choice.id}
+                                                                onChange={handleChange}
+                                                            />
+                                                            <label htmlFor={`choice_${choice.id}`} className="ml-2">{choice.description}</label>
+                                                        </li>
+                                                    ))
+                                                )}
                                             </ul>
                                         </fieldset>
                                     </div>

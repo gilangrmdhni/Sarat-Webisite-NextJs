@@ -10,7 +10,7 @@ const Presensi = () => {
     const router = useRouter();
     const { user } = useAuth();
 
-    const user_id = user?.body?.id || null;
+    const user_id = user?.user_id || null;
     const [currentPage, setCurrentPage] = useState(1);
     const [formData, setFormData] = useState({
         session_detail_id: '',
@@ -31,19 +31,45 @@ const Presensi = () => {
         resume_materi_dua: '',
         resume_materi_tiga: '',
         resume_materi_empat: '',
+        flag: 'ATTENDANCE',
         resume_file: null,
-        hardcoded_name: '',
-        hardcoded_title: '',
     });
 
     const [sessionOptions, setSessionOptions] = useState([]);
     const [institutionOptions, setInstitutionOptions] = useState([]);
 
+    const fetchQuestions = async (sessionDetailId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const apiUrl = `https://api.nusa-sarat.nuncorp.id/api/v1/question/filter?session_detail=${sessionDetailId}&flag=PRE_TEST`;
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const responseData = await response.json();
+                setQuestions(responseData.body);
+            } else {
+                console.error('API Error:', response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+        }
+    };
+
     useEffect(() => {
         const fetchSessionOptions = async () => {
+            const token = localStorage.getItem('token');
             try {
                 const apiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/session/active';
-                const response = await fetch(apiUrl, { method: 'GET' });
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
 
                 if (response.ok) {
                     const responseData = await response.json();
@@ -58,9 +84,15 @@ const Presensi = () => {
         };
 
         const fetchInstitutionOptions = async () => {
+            const token = localStorage.getItem('token');
             try {
                 const apiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/institution/filter';
-                const response = await fetch(apiUrl, { method: 'GET' });
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
 
                 if (response.ok) {
                     const institutionData = await response.json();
@@ -93,9 +125,61 @@ const Presensi = () => {
         });
     };
 
-    const handleNextPage = () => {
-        setCurrentPage(currentPage + 1);
+    const handleNextPage = async () => {
+        if (currentPage === 1) {
+            if (formData.institution_id === '5') {
+                setCurrentPage(2); // Menampilkan halaman tambahan untuk "Squad AIM"
+            } else {
+                setCurrentPage(3); // Langsung ke halaman pertanyaan jika bukan "Squad AIM"
+            }
+        } else if (currentPage === 2) {
+            setCurrentPage(3); // Pindah ke halaman pertanyaan setelah memilih squad
+        } else if (currentPage === 3) {
+            try {
+                const token = localStorage.getItem('token');
+                const firstApiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/session/resume/answer';
+                const firstFormData = new FormData();
+
+                for (const key in formData) {
+                    if (key !== 'session_answer_id') {
+                        firstFormData.append(key, formData[key]);
+                    }
+                }
+
+                firstFormData.append('user_id', String(user_id || ''));
+
+                const firstApiResponse = await fetch(firstApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: firstFormData,
+                });
+
+                const firstResponseData = await firstApiResponse.json();
+
+                if (firstApiResponse.ok) {
+                    console.log('First API Response:', firstResponseData);
+
+                    const sessionAnswerId = firstResponseData.body.id;
+                    localStorage.setItem("sessionAnswerId", sessionAnswerId);
+
+                    setFormData({
+                        ...formData,
+                        session_answer_id: sessionAnswerId,
+                    });
+                } else {
+                    console.error('First API Error:', firstApiResponse.status, firstApiResponse.statusText);
+                    if (firstResponseData && firstResponseData.error) {
+                        console.error('First API Error Details:', firstResponseData.error);
+                    }
+                }
+            } catch (error) {
+                console.error('Error during first API call:', error);
+            }
+        }
     };
+
 
     const handlePrevPage = () => {
         setCurrentPage(currentPage - 1);
@@ -103,72 +187,75 @@ const Presensi = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         try {
-            const firstApiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/session/resume/answer';
-            const firstFormData = new FormData();
-
-            for (const key in formData) {
-                if (key !== 'session_answer_id') {
-                    firstFormData.append(key, formData[key]);
-                }
-            }
-
-            firstFormData.append('user_id', String(user_id || ''));
-
-            const firstApiResponse = await fetch(firstApiUrl, {
-                method: 'POST',
-                body: firstFormData,
-            });
-
-            const firstResponseData = await firstApiResponse.json();
-
-            if (firstApiResponse.ok) {
-                console.log('First API Response:', firstResponseData);
-
-                const sessionAnswerId = firstResponseData.body.id;
-                localStorage.setItem("sessionAnswerId", sessionAnswerId);
-
-                setFormData({
-                    ...formData,
-                    session_answer_id: sessionAnswerId,
-                });
-
-                let data = JSON.stringify({
-                    user_id: user_id,
-                    session_answer_id: sessionAnswerId,
-                    resume: formData.resume
-                });
-
-                let config = {
-                    method: 'post',
-                    maxBodyLength: Infinity,
-                    url: 'https://api.nusa-sarat.nuncorp.id/api/v1/exams/answer',
+            let resumeFileUrl = '';
+    
+            if (formData.resume_file) {
+                const fileData = new FormData();
+                fileData.append('file', formData.resume_file);
+    
+                const uploadResponse = await axios.post('https://api.nusa-sarat.nuncorp.id/api/v1/media/upload', fileData, {
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'multipart/form-data',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token di sini
                     },
-                    data: data,
-                };
-
-                axios.request(config)
-                    .then((response) => {
-                        console.log(JSON.stringify(response.data));
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        console.log('Second API Response:', error);
-                    });
-
-            } else {
-                console.error('First API Error:', firstApiResponse.status, firstApiResponse.statusText);
-                if (firstResponseData && firstResponseData.error) {
-                    console.error('First API Error Details:', firstResponseData.error);
-                }
+                });
+    
+                resumeFileUrl = uploadResponse.data.body.url; // Assuming the response contains the URL of the uploaded file
             }
+    
+            const dataAnswers = [
+                {
+                    question_id: 19,
+                    answer: resumeFileUrl || formData.resume,
+                },
+                {
+                    question_id: 22,
+                    answer: formData.resume_materi_dua,
+                },
+            ];
+    
+            const data = {
+                session_detail_id: parseInt(formData.session_detail_id),
+                institution_id: parseInt(formData.institution_id),
+                attendance_type: formData.attendance_type,
+                flag: 'ATTENDANCE',
+                parent_type: formData.parent_type,
+                parent_phone: formData.parent_phone,
+                start_time: formData.start_time,
+                end_time: formData.end_time,
+                reason_late: formData.reason_late,
+                reason_attend_online: formData.reason_attend_online,
+                reason_absent: formData.reason_absent,
+                squad: formData.squad,
+                question_answers: dataAnswers,
+            };
+    
+            const config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: 'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`, 
+                },
+                data: JSON.stringify(data),
+            };
+    
+            axios.request(config)
+                .then((response) => {
+                    console.log(JSON.stringify(response.data));
+                })
+                .catch((error) => {
+                    console.error('Second API Response Error:', error);
+                });
+    
         } catch (error) {
-            console.error('Error during first API call:', error);
+            console.error('Error during form submission:', error);
         }
     };
+    
 
     return (
         <Layout>
@@ -195,7 +282,7 @@ const Presensi = () => {
                                     >
                                         <option value="" disabled>Pilih Sesi</option>
                                         {sessionOptions.map((session) => (
-                                            <option key={session.id} value={session.id}>{session.title} : {session.description}</option>
+                                            <option key={session.id} value={session.session_id}>{session.title} : {session.description}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -233,7 +320,7 @@ const Presensi = () => {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="parent_type" className="block text-sm font-semibold text-gray-600 mb-1">Pilih Wali:</label>
+                                    <label htmlFor="parent_type" className="block text-sm font-semibold text-gray-600 mb-1">Status Wali Murid:</label>
                                     <select
                                         id="parent_type"
                                         name="parent_type"
@@ -242,8 +329,8 @@ const Presensi = () => {
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                     >
                                         <option value="" disabled>Pilih Wali</option>
-                                        <option value="Ayah">Ayah</option>
-                                        <option value="Bunda">Bunda</option>
+                                        <option value="FATHER">Ayah</option>
+                                        <option value="MOTHER">Bunda</option>
                                     </select>
                                 </div>
                                 <div className="mb-4">
@@ -337,7 +424,7 @@ const Presensi = () => {
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                     >
                                         <option value="" disabled>Pilih Institusi</option>
-                                        {institutionOptions.map((institution) => (
+                                        {institutionOptions.map((institution, index) => (
                                             <option key={institution.id} value={institution.id}>{institution.name}</option>
                                         ))}
                                     </select>
@@ -351,19 +438,59 @@ const Presensi = () => {
                                 </button>
                             </>
                         )}
-                        {/* Page 2 */}
-                        {currentPage === 2 && (
+                        {/* Page 2 - Squad AIM Selection */}
+                        {currentPage === 2 && formData.institution_id === '5' && (
                             <>
                                 <div className="mb-4">
-                                    <label htmlFor="hardcoded_name" className="block text-sm font-semibold text-gray-600 mb-1">Nama Lengkap berikut Gelar</label>
-                                    <input
-                                        type="text"
-                                        id="hardcoded_name"
-                                        name="hardcoded_name"
-                                        value={formData.hardcoded_name}
-                                        onChange={handleChange}
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
+                                    <label className="block text-sm font-semibold text-gray-600 mb-1">Squad:</label>
+                                    <div>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                name="squad"
+                                                value="Abu Hanifah"
+                                                onChange={handleChange}
+                                                checked={formData.squad === 'Abu Hanifah'}
+                                            />
+                                            Abu Hanifah
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                name="squad"
+                                                value="Syafi'i"
+                                                onChange={handleChange}
+                                                checked={formData.squad === "Syafi'i"}
+                                            />
+                                            Syafi{"'"}i
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                name="squad"
+                                                value="Maliki"
+                                                onChange={handleChange}
+                                                checked={formData.squad === 'Maliki'}
+                                            />
+                                            Maliki
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                name="squad"
+                                                value="Hanbali"
+                                                onChange={handleChange}
+                                                checked={formData.squad === 'Hanbali'}
+                                            />
+                                            Hanbali
+                                        </label>
+                                    </div>
                                 </div>
                                 <button
                                     type="button"
@@ -385,7 +512,7 @@ const Presensi = () => {
                         {currentPage === 3 && (
                             <>
                                 <div className="mb-4">
-                                    <label htmlFor="online_presence" className="block text-sm font-semibold text-gray-600 mb-1">Jika nama Anda di form ini belum benar, atau belum ada gelar lengkapnya, berkenan Ayah/Bunda menuliskan revisi yang sempurnanya disini.</label>
+                                    <label htmlFor="resume_materi_satu" className="block text-sm font-semibold text-gray-600 mb-1">Jika nama Anda di form ini belum benar, atau belum ada gelar lengkapnya, berkenan Ayah/Bunda menuliskan revisi yang sempurnanya disini.</label>
                                     <input
                                         id="resume_materi_satu"
                                         name="resume_materi_satu"
@@ -396,7 +523,7 @@ const Presensi = () => {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="online_presence" className="block text-sm font-semibold text-gray-600 mb-1">Apakah hal baru dan menarik yang Ayah/Bunda peroleh dalam pertemuan ini?</label>
+                                    <label htmlFor="resume_materi_dua" className="block text-sm font-semibold text-gray-600 mb-1">Apakah hal baru dan menarik yang Ayah/Bunda peroleh dalam pertemuan ini?</label>
                                     <input
                                         id="resume_materi_dua"
                                         name="resume_materi_dua"
@@ -407,7 +534,7 @@ const Presensi = () => {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="online_presence" className="block text-sm font-semibold text-gray-600 mb-1">Apakah ide dan gagasan terbaru Anda hari ini sebagai mitra strategis SekolahAdab.ID?</label>
+                                    <label htmlFor="resume_materi_tiga" className="block text-sm font-semibold text-gray-600 mb-1">Apakah ide dan gagasan terbaru Anda hari ini sebagai mitra strategis SekolahAdab.ID?</label>
                                     <input
                                         id="resume_materi_tiga"
                                         name="resume_materi_tiga"
@@ -418,7 +545,7 @@ const Presensi = () => {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="online_presence" className="block text-sm font-semibold text-gray-600 mb-1">Diinformasikan bahwa Daurah Ayah akan dilaksanakan pada 29-30 Juni 2024 di Bogor. Siap hadir Ayah?</label>
+                                    <label htmlFor="resume_materi_empat" className="block text-sm font-semibold text-gray-600 mb-1">Diinformasikan bahwa Daurah Ayah akan dilaksanakan pada 29-30 Juni 2024 di Bogor. Siap hadir Ayah?</label>
                                     <input
                                         id="resume_materi_empat"
                                         name="resume_materi_empat"
@@ -447,7 +574,7 @@ const Presensi = () => {
                                             id="resume_file"
                                             name="resume_file"
                                             onChange={handleImageChange}
-                                            accept=".pdf, .doc, .docx, .png, .jpg, .jpeg" // Accept multiple file types
+                                            accept=".pdf, .doc, .docx, .png, .jpg, .jpeg"
                                             className="hidden"
                                         />
                                         <div className="bg-gray-100 hover:bg-gray-200 p-3 border rounded-md transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center">

@@ -4,9 +4,8 @@ import { faEye, faEyeSlash, faExclamationCircle } from '@fortawesome/free-solid-
 import { useAuth } from '../pages/authContext';
 import { useRouter } from 'next/router';
 
-
 const LoginForm = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
@@ -18,17 +17,17 @@ const LoginForm = () => {
     e.preventDefault();
 
     try {
-      await login({ email, password });
-      router.push('/'); // Atur rute yang sesuai
+      await login({ username, password });
+      router.push('/HomePage'); // Atur rute yang sesuai
     } catch (error) {
       console.error('Login error:', error.message);
-      setError('Email atau password salah. Silakan coba lagi.');
+      setError('Username atau password salah. Silakan coba lagi.');
       setShowError(true);
     }
   };
+
   return (
     <div>
-
       <form onSubmit={handleLogin} className="max-w-md mx-auto p-4 rounded-md shadow-md">
         {error && (
           <p className="text-red-600 mb-4 flex items-center">
@@ -38,10 +37,9 @@ const LoginForm = () => {
             {error}
           </p>
         )}
-
         <label className="block mb-2 text-sm font-semibold text-gray-600">
-          Email:
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 mt-1 border rounded-md" />
+          Username:
+          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-2 mt-1 border rounded-md" />
         </label>
         <label className="block mb-2 text-sm font-semibold text-gray-600">
           Password:
@@ -65,13 +63,11 @@ const LoginForm = () => {
         </button>
       </form>
       {/* Pemberitahuan popup saat login gagal */}
-      {
-        showError && (
-          <div className="fixed bottom-0 right-0 mb-4 mr-4 p-4 bg-red-500 text-white rounded-md">
-            {error}
-          </div>
-        )
-      }
+      {showError && (
+        <div className="fixed bottom-0 right-0 mb-4 mr-4 p-4 bg-red-500 text-white rounded-md">
+          {error}
+        </div>
+      )}
     </div>
   );
 };

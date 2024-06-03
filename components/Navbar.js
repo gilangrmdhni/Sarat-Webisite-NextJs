@@ -10,6 +10,18 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsSnackbarOpen(true);
+      // Mengarahkan pengguna ke halaman login
+      router.push('/Login');
+    } catch (error) {
+      console.error('Logout error:', error.message);
+    }
+  };
+
+
   // State for managing snackbar visibility
   const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
 
@@ -27,12 +39,12 @@ const Navbar = () => {
         <div className="max-w-custom mx-auto flex items-center justify-between">
           <div className="text-start">
             <div className="text-2xl font-bold mb-2">Assalamualaikum</div>
-            <div className="text-lg">{user?.body?.fullname}</div>
+            <div className="text-lg">{user?.username}</div>
           </div>
           {/* Logout/signout button with icon */}
           <button
             className="text-white cursor-pointer"
-          // onClick={handleLogout}
+            onClick={handleLogout}
           >
             <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
           </button>
