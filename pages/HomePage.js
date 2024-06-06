@@ -98,29 +98,25 @@ const HomePage = () => {
                                 </div>
                                 <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 px-4">
                                     {/* Card 1 - Submit Sarat */}
-                                    <div className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col h-54 ${isTimeValid ? 'hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}>
-                                        <div className="flex items-center justify-center h-32">
-                                            <div className="relative h-40 w-40">
-                                                <Image
-                                                    src={saratImages[1]}
-                                                    alt="Submit Sarat"
-                                                    layout="fill"
-                                                    objectFit="cover"
-                                                    className="rounded-t-lg"
-                                                />
+                                    <Link href={user ? "/Presensi" : "/Login"}>
+                                        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
+                                            <div className="flex items-center justify-center h-32">
+                                                <div className="relative h-40 w-40">
+                                                    <Image
+                                                        src={saratImages[1]}
+                                                        alt="Submit Sarat"
+                                                        layout="fill"
+                                                        objectFit="cover"
+                                                        className="rounded-t-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
+                                                <h2 className="text-sm font-semibold">Presensi Sarat</h2>
+                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
                                             </div>
                                         </div>
-                                        <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
-                                            <h2 className="text-sm font-semibold">Presensi Sarat</h2>
-                                            {isTimeValid ? (
-                                                <Link href={user ? "/Presensi" : "/Login"}>
-                                                    <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
-                                                </Link>
-                                            ) : (
-                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
-                                            )}
-                                        </div>
-                                    </div>
+                                    </Link>
                                     {/* Card 2 - Pre-Test Sarat */}
                                     <div className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col h-54 ${isTimeValid ? 'hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}>
                                         <div className="flex items-center justify-center h-32">
