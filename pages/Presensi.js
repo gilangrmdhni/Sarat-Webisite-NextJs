@@ -15,49 +15,22 @@ const Presensi = () => {
     const [formData, setFormData] = useState({
         session_detail_id: '',
         parent_type: '',
-        student_name: '',
-        student_class: '',
-        parent_name: '',
         parent_phone: '',
         start_time: '',
         end_time: '',
         reason_late: '',
+        reason_attend_online: '',
+        reason_absent: '',
         resume: '',
         institution_id: '',
         attendance_type: 'Hadir Offline',
-        online_presence: '',
-        offline_presence: '',
-        resume_materi_satu: '',
-        resume_materi_dua: '',
-        resume_materi_tiga: '',
-        resume_materi_empat: '',
         flag: 'ATTENDANCE',
         resume_file: null,
+        squad: '',
     });
 
     const [sessionOptions, setSessionOptions] = useState([]);
     const [institutionOptions, setInstitutionOptions] = useState([]);
-
-    const fetchQuestions = async (sessionDetailId) => {
-        try {
-            const token = localStorage.getItem('token');
-            const apiUrl = `https://api.nusa-sarat.nuncorp.id/api/v1/question/filter?session_detail=${sessionDetailId}&flag=PRE_TEST`;
-            const response = await fetch(apiUrl, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                const responseData = await response.json();
-                setQuestions(responseData.body);
-            } else {
-                console.error('API Error:', response.status, response.statusText);
-            }
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-        }
-    };
 
     useEffect(() => {
         const fetchSessionOptions = async () => {
@@ -125,7 +98,7 @@ const Presensi = () => {
         });
     };
 
-    const handleNextPage = async () => {
+    const handleNextPage = () => {
         if (currentPage === 1) {
             if (formData.institution_id === '5') {
                 setCurrentPage(2); // Menampilkan halaman tambahan untuk "Squad AIM"
@@ -134,52 +107,8 @@ const Presensi = () => {
             }
         } else if (currentPage === 2) {
             setCurrentPage(3); // Pindah ke halaman pertanyaan setelah memilih squad
-        } else if (currentPage === 3) {
-            try {
-                const token = localStorage.getItem('token');
-                const firstApiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/session/resume/answer';
-                const firstFormData = new FormData();
-
-                for (const key in formData) {
-                    if (key !== 'session_answer_id') {
-                        firstFormData.append(key, formData[key]);
-                    }
-                }
-
-                firstFormData.append('user_id', String(user_id || ''));
-
-                const firstApiResponse = await fetch(firstApiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: firstFormData,
-                });
-
-                const firstResponseData = await firstApiResponse.json();
-
-                if (firstApiResponse.ok) {
-                    console.log('First API Response:', firstResponseData);
-
-                    const sessionAnswerId = firstResponseData.body.id;
-                    localStorage.setItem("sessionAnswerId", sessionAnswerId);
-
-                    setFormData({
-                        ...formData,
-                        session_answer_id: sessionAnswerId,
-                    });
-                } else {
-                    console.error('First API Error:', firstApiResponse.status, firstApiResponse.statusText);
-                    if (firstResponseData && firstResponseData.error) {
-                        console.error('First API Error Details:', firstResponseData.error);
-                    }
-                }
-            } catch (error) {
-                console.error('Error during first API call:', error);
-            }
         }
     };
-
 
     const handlePrevPage = () => {
         setCurrentPage(currentPage - 1);
@@ -187,24 +116,26 @@ const Presensi = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         try {
             let resumeFileUrl = '';
-    
+
             if (formData.resume_file) {
                 const fileData = new FormData();
                 fileData.append('file', formData.resume_file);
-    
+                fileData.append('destination', 'resume');
+                fileData.append('name', 'resume');
+
                 const uploadResponse = await axios.post('https://api.nusa-sarat.nuncorp.id/api/v1/media/upload', fileData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`, // Sertakan token di sini
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     },
                 });
-    
-                resumeFileUrl = uploadResponse.data.body.url; // Assuming the response contains the URL of the uploaded file
+
+                resumeFileUrl = uploadResponse.data.body.file_url; // Get the file_url from the response
             }
-    
+
             const dataAnswers = [
                 {
                     question_id: 19,
@@ -212,10 +143,10 @@ const Presensi = () => {
                 },
                 {
                     question_id: 22,
-                    answer: formData.resume_materi_dua,
+                    answer: resumeFileUrl ? resumeFileUrl : 'Tidak ada jawaban', // Use the uploaded file URL for question 22 if it exists
                 },
             ];
-    
+
             const data = {
                 session_detail_id: parseInt(formData.session_detail_id),
                 institution_id: parseInt(formData.institution_id),
@@ -231,31 +162,24 @@ const Presensi = () => {
                 squad: formData.squad,
                 question_answers: dataAnswers,
             };
-    
+
             const config = {
                 method: 'post',
                 maxBodyLength: Infinity,
                 url: 'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`, 
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
                 data: JSON.stringify(data),
             };
-    
-            axios.request(config)
-                .then((response) => {
-                    console.log(JSON.stringify(response.data));
-                })
-                .catch((error) => {
-                    console.error('Second API Response Error:', error);
-                });
-    
+
+            const response = await axios.request(config);
+            console.log(JSON.stringify(response.data));
         } catch (error) {
             console.error('Error during form submission:', error);
         }
     };
-    
 
     return (
         <Layout>
@@ -285,39 +209,6 @@ const Presensi = () => {
                                             <option key={session.id} value={session.session_id}>{session.title} : {session.description}</option>
                                         ))}
                                     </select>
-                                </div>
-                                <div className="mb-4">
-                                    <label htmlFor="parent_name" className="block text-sm font-semibold text-gray-600 mb-1">Nama Orang Tua:</label>
-                                    <input
-                                        type="text"
-                                        id="parent_name"
-                                        name="parent_name"
-                                        value={formData.parent_name}
-                                        onChange={handleChange}
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
-                                </div>
-                                <div className="mb-4">
-                                    <label htmlFor="student_name" className="block text-sm font-semibold text-gray-600 mb-1">Nama Murid:</label>
-                                    <input
-                                        type="text"
-                                        id="student_name"
-                                        name="student_name"
-                                        value={formData.student_name}
-                                        onChange={handleChange}
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
-                                </div>
-                                <div className="mb-4">
-                                    <label htmlFor="student_class" className="block text-sm font-semibold text-gray-600 mb-1">Kelas Siswa:</label>
-                                    <input
-                                        type="text"
-                                        id="student_class"
-                                        name="student_class"
-                                        value={formData.student_class}
-                                        onChange={handleChange}
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
                                 </div>
                                 <div className="mb-4">
                                     <label htmlFor="parent_type" className="block text-sm font-semibold text-gray-600 mb-1">Status Wali Murid:</label>
@@ -393,22 +284,22 @@ const Presensi = () => {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="online_presence" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Hadir Online (Diisi jika hadir secara online):</label>
+                                    <label htmlFor="reason_attend_online" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Hadir Online (Diisi jika hadir secara online):</label>
                                     <input
-                                        id="online_presence"
-                                        name="online_presence"
-                                        value={formData.online_presence}
+                                        id="reason_attend_online"
+                                        name="reason_attend_online"
+                                        value={formData.reason_attend_online}
                                         onChange={handleChange}
                                         rows="4"
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="offline_presence" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Alasan Tidak Hadir Sama Sekali di Hari Offline (Diisi jika tidak hadir baik offline maupun online):</label>
+                                    <label htmlFor="reason_absent" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Tidak Hadir Sama Sekali di Hari Offline (Diisi jika tidak hadir baik offline maupun online):</label>
                                     <input
-                                        id="offline_presence"
-                                        name="offline_presence"
-                                        value={formData.offline_presence}
+                                        id="reason_absent"
+                                        name="reason_absent"
+                                        value={formData.reason_absent}
                                         onChange={handleChange}
                                         rows="4"
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
@@ -511,50 +402,6 @@ const Presensi = () => {
                         {/* Page 3 */}
                         {currentPage === 3 && (
                             <>
-                                <div className="mb-4">
-                                    <label htmlFor="resume_materi_satu" className="block text-sm font-semibold text-gray-600 mb-1">Jika nama Anda di form ini belum benar, atau belum ada gelar lengkapnya, berkenan Ayah/Bunda menuliskan revisi yang sempurnanya disini.</label>
-                                    <input
-                                        id="resume_materi_satu"
-                                        name="resume_materi_satu"
-                                        value={formData.resume_materi_satu}
-                                        onChange={handleChange}
-                                        rows="4"
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
-                                </div>
-                                <div className="mb-4">
-                                    <label htmlFor="resume_materi_dua" className="block text-sm font-semibold text-gray-600 mb-1">Apakah hal baru dan menarik yang Ayah/Bunda peroleh dalam pertemuan ini?</label>
-                                    <input
-                                        id="resume_materi_dua"
-                                        name="resume_materi_dua"
-                                        value={formData.resume_materi_dua}
-                                        onChange={handleChange}
-                                        rows="4"
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
-                                </div>
-                                <div className="mb-4">
-                                    <label htmlFor="resume_materi_tiga" className="block text-sm font-semibold text-gray-600 mb-1">Apakah ide dan gagasan terbaru Anda hari ini sebagai mitra strategis SekolahAdab.ID?</label>
-                                    <input
-                                        id="resume_materi_tiga"
-                                        name="resume_materi_tiga"
-                                        value={formData.resume_materi_tiga}
-                                        onChange={handleChange}
-                                        rows="4"
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
-                                </div>
-                                <div className="mb-4">
-                                    <label htmlFor="resume_materi_empat" className="block text-sm font-semibold text-gray-600 mb-1">Diinformasikan bahwa Daurah Ayah akan dilaksanakan pada 29-30 Juni 2024 di Bogor. Siap hadir Ayah?</label>
-                                    <input
-                                        id="resume_materi_empat"
-                                        name="resume_materi_empat"
-                                        value={formData.resume_materi_empat}
-                                        onChange={handleChange}
-                                        rows="4"
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
-                                </div>
                                 <div className="mb-4">
                                     <label htmlFor="resume" className="block text-sm font-semibold text-gray-600 mb-1">Resume (Opsi 1)</label>
                                     <textarea

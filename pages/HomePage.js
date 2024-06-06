@@ -16,12 +16,25 @@ import NewsList from '@/components/NewsList';
 const HomePage = () => {
     const { user } = useAuth();
     const [showSplash, setShowSplash] = useState(true);
+    const [isTimeValid, setIsTimeValid] = useState(true);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setShowSplash(false);
         }, 2000);
 
+        const checkTimeValidity = () => {
+            const currentTime = new Date();
+            const validTime = new Date();
+            validTime.setHours(6, 45, 0); // Set valid time to 06:45
+
+            if (currentTime > validTime) {
+                setIsTimeValid(false);
+            }
+        };
+
+        checkTimeValidity();
+        
         return () => clearTimeout(timer);
     }, []);
 
@@ -83,67 +96,55 @@ const HomePage = () => {
                                         ))}
                                     </Slider>
                                 </div>
-                                <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4 px-4">
+                                <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 px-4">
                                     {/* Card 1 - Submit Sarat */}
-                                    <Link href={user ? "/Presensi" : "/Login"}>
-                                        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
-                                            <div className="flex items-center justify-center h-32">
-                                                <div className="relative h-40 w-40">
-                                                    <Image
-                                                        src={saratImages[1]}
-                                                        alt="Submit Sarat"
-                                                        layout="fill"
-                                                        objectFit="cover"
-                                                        className="rounded-t-lg"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
-                                                <h2 className="text-sm font-semibold">Presensi Sarat</h2>
-                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
+                                    <div className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col h-54 ${isTimeValid ? 'hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}>
+                                        <div className="flex items-center justify-center h-32">
+                                            <div className="relative h-40 w-40">
+                                                <Image
+                                                    src={saratImages[1]}
+                                                    alt="Submit Sarat"
+                                                    layout="fill"
+                                                    objectFit="cover"
+                                                    className="rounded-t-lg"
+                                                />
                                             </div>
                                         </div>
-                                    </Link>
+                                        <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
+                                            <h2 className="text-sm font-semibold">Presensi Sarat</h2>
+                                            {isTimeValid ? (
+                                                <Link href={user ? "/Presensi" : "/Login"}>
+                                                    <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
+                                                </Link>
+                                            ) : (
+                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
+                                            )}
+                                        </div>
+                                    </div>
                                     {/* Card 2 - Pre-Test Sarat */}
-                                    <Link href={user ? "/PreTest" : "/Login"}>
-                                        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
-                                            <div className="flex items-center justify-center h-32">
-                                                <div className="relative h-40 w-40">
-                                                    <Image
-                                                        src={saratImages[0]}
-                                                        alt="Pre-Test Sarat"
-                                                        layout="fill"
-                                                        objectFit="cover"
-                                                        className="rounded-t-lg"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
-                                                <h2 className="text-sm font-semibold">Pre-Test Sarat</h2>
-                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
+                                    <div className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col h-54 ${isTimeValid ? 'hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}>
+                                        <div className="flex items-center justify-center h-32">
+                                            <div className="relative h-40 w-40">
+                                                <Image
+                                                    src={saratImages[0]}
+                                                    alt="Pre-Test Sarat"
+                                                    layout="fill"
+                                                    objectFit="cover"
+                                                    className="rounded-t-lg"
+                                                />
                                             </div>
                                         </div>
-                                    </Link>
-                                    {/* Card 3 - History Sarat */}
-                                    <Link href={user ? "/HistorySarat" : "/Login"}>
-                                        <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
-                                            <div className="flex items-center justify-center h-32">
-                                                <div className="relative h-20 w-20">
-                                                    <Image
-                                                        src={saratImages[2]}
-                                                        alt="History Sarat"
-                                                        layout="fill"
-                                                        objectFit="cover"
-                                                        className="rounded-t-lg"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
-                                                <h2 className="text-sm font-semibold">History Sarat</h2>
+                                        <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
+                                            <h2 className="text-sm font-semibold">Pre-Test Sarat</h2>
+                                            {isTimeValid ? (
+                                                <Link href={user ? "/PreTest" : "/Login"}>
+                                                    <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
+                                                </Link>
+                                            ) : (
                                                 <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
-                                            </div>
+                                            )}
                                         </div>
-                                    </Link>
+                                    </div>
                                 </div>
                                 <div className="w-full mt-12 mb-6 bg-gray-200 h-0.5 rounded-sm"></div>
                                 <h1 className="text-2xl font-semibold mb-4 ml-4">News</h1>
