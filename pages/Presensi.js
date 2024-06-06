@@ -178,6 +178,7 @@ const Presensi = () => {
                         question_id: question.id,
                         answer: fileUrl,
                     });
+                    router.push('/HomePage');
                 } else {
                     const selectedAnswer = formData[`question_${question.id}`];
                     dataAnswers.push({

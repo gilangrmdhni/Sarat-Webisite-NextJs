@@ -167,9 +167,10 @@ const PreTest = () => {
                 if (fileInputs[question.id]) {
                     dataAnswers.push({
                         question_id: question.id,
-                        answer: fileInputs[question.id], 
+                        answer: fileInputs[question.id],
                     });
                 }
+                router.push('/HomePage');
             });
 
             const submissionData = {
