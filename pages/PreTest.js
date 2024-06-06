@@ -167,7 +167,7 @@ const PreTest = () => {
                 if (fileInputs[question.id]) {
                     dataAnswers.push({
                         question_id: question.id,
-                        answer: fileInputs[question.id], // Menyimpan file secara langsung ke dalam objek JSON
+                        answer: fileInputs[question.id], 
                     });
                 }
             });
@@ -306,6 +306,8 @@ const PreTest = () => {
                                 >
                                     <option value="Hadir Offline">Hadir Offline</option>
                                     <option value="Hadir Online">Hadir Online</option>
+                                    <option value="Tidak hadir (sudah izin)">Tidak hadir (sudah izin)</option>
+                                    <option value="Tidak hadir (Ghaib)">Tidak hadir (Ghaib)</option>
                                 </select>
                             </div>
                             <div className="mb-4">

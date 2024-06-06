@@ -31,6 +31,29 @@ const Presensi = () => {
 
     const [sessionOptions, setSessionOptions] = useState([]);
     const [institutionOptions, setInstitutionOptions] = useState([]);
+    const [questions, setQuestions] = useState([]);
+    const [fileInputs, setFileInputs] = useState({});
+
+    const fetchQuestions = async (sessionDetailId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const apiUrl = `https://api.nusa-sarat.nuncorp.id/api/v1/question/filter?session_detail=${sessionDetailId}&flag=ATTENDANCE`;
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const responseData = await response.json();
+                setQuestions(responseData.body);
+            } else {
+                console.error('API Error:', response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+        }
+    };
 
     useEffect(() => {
         const fetchSessionOptions = async () => {
@@ -90,6 +113,14 @@ const Presensi = () => {
         });
     };
 
+    const handleFileChange = (e, questionId) => {
+        const file = e.target.files[0];
+        setFileInputs({
+            ...fileInputs,
+            [questionId]: file,
+        });
+    };
+
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setFormData({
@@ -98,54 +129,63 @@ const Presensi = () => {
         });
     };
 
-    const handleNextPage = () => {
+    const handleNextPage = async () => {
         if (currentPage === 1) {
+            // Validasi halaman pertama
+            if (!formData.session_detail_id || !formData.parent_type || !formData.parent_phone || !formData.start_time) {
+                alert("Please fill in all required fields.");
+                return;
+            }
             if (formData.institution_id === '5') {
-                setCurrentPage(2); // Menampilkan halaman tambahan untuk "Squad AIM"
+                setCurrentPage(currentPage + 1); // Navigate to page 2 (Squad selection) if institution is 'Squad AIM'
             } else {
-                setCurrentPage(3); // Langsung ke halaman pertanyaan jika bukan "Squad AIM"
+                setCurrentPage(currentPage + 2); // Navigate directly to page 3 (Questions) for other institutions
             }
         } else if (currentPage === 2) {
-            setCurrentPage(3); // Pindah ke halaman pertanyaan setelah memilih squad
+            // Validasi halaman kedua
+            if (formData.institution_id === '5' && !formData.squad) {
+                alert("Please select a squad.");
+                return;
+            }
+            setCurrentPage(currentPage + 1); // Navigate to page 3 (Questions)
         }
-    };
-
-    const handlePrevPage = () => {
-        setCurrentPage(currentPage - 1);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            let resumeFileUrl = '';
+            const token = localStorage.getItem('token');
+            let dataAnswers = [];
 
-            if (formData.resume_file) {
-                const fileData = new FormData();
-                fileData.append('file', formData.resume_file);
-                fileData.append('destination', 'resume');
-                fileData.append('name', 'resume');
+            // Upload files and get URLs
+            for (const question of questions) {
+                if (fileInputs[question.id]) {
+                    const fileData = new FormData();
+                    fileData.append('file', fileInputs[question.id]);
+                    fileData.append('destination', 'resume');
+                    fileData.append('name', 'resume');
 
-                const uploadResponse = await axios.post('https://api.nusa-sarat.nuncorp.id/api/v1/media/upload', fileData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    },
-                });
+                    const uploadResponse = await axios.post('https://api.nusa-sarat.nuncorp.id/api/v1/media/upload', fileData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    });
 
-                resumeFileUrl = uploadResponse.data.body.file_url; // Get the file_url from the response
+                    const fileUrl = uploadResponse.data.body.file_url;
+                    dataAnswers.push({
+                        question_id: question.id,
+                        answer: fileUrl,
+                    });
+                } else {
+                    const selectedAnswer = formData[`question_${question.id}`];
+                    dataAnswers.push({
+                        question_id: question.id,
+                        answer: selectedAnswer || '',
+                    });
+                }
             }
-
-            const dataAnswers = [
-                {
-                    question_id: 19,
-                    answer: resumeFileUrl || formData.resume,
-                },
-                {
-                    question_id: 22,
-                    answer: resumeFileUrl ? resumeFileUrl : 'Tidak ada jawaban', // Use the uploaded file URL for question 22 if it exists
-                },
-            ];
 
             const data = {
                 session_detail_id: parseInt(formData.session_detail_id),
@@ -163,22 +203,37 @@ const Presensi = () => {
                 question_answers: dataAnswers,
             };
 
-            const config = {
-                method: 'post',
-                maxBodyLength: Infinity,
-                url: 'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                },
-                data: JSON.stringify(data),
-            };
+            const response = await axios.post(
+                'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
+                data,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
 
-            const response = await axios.request(config);
-            console.log(JSON.stringify(response.data));
+            console.log('Response dari API:', response.data);
         } catch (error) {
             console.error('Error during form submission:', error);
         }
+    };
+
+    const handleSessionChange = (e) => {
+        const sessionDetailId = e.target.value;
+        setFormData({
+            ...formData,
+            session_detail_id: sessionDetailId,
+        });
+
+        if (sessionDetailId) {
+            fetchQuestions(sessionDetailId);
+        }
+    };
+
+    const handlePrevPage = () => {
+        setCurrentPage(currentPage - 1);
     };
 
     return (
@@ -201,12 +256,12 @@ const Presensi = () => {
                                         id="session_detail_id"
                                         name="session_detail_id"
                                         value={formData.session_detail_id}
-                                        onChange={handleChange}
+                                        onChange={handleSessionChange}
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                     >
                                         <option value="" disabled>Pilih Sesi</option>
                                         {sessionOptions.map((session) => (
-                                            <option key={session.id} value={session.session_id}>{session.title} : {session.description}</option>
+                                            <option key={session.id} value={session.id}>{session.title} : {session.description}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -402,40 +457,16 @@ const Presensi = () => {
                         {/* Page 3 */}
                         {currentPage === 3 && (
                             <>
-                                <div className="mb-4">
-                                    <label htmlFor="resume" className="block text-sm font-semibold text-gray-600 mb-1">Resume (Opsi 1)</label>
-                                    <textarea
-                                        id="resume"
-                                        name="resume"
-                                        value={formData.resume}
-                                        onChange={handleChange}
-                                        rows="4"
-                                        className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    />
-                                </div>
-                                <div className="mb-4">
-                                    <label htmlFor="resume_file" className="block text-sm font-semibold text-gray-600 mb-1">Resume (Opsi 2):</label>
-                                    <label className="relative cursor-pointer text-center">
-                                        <input
-                                            type="file"
-                                            id="resume_file"
-                                            name="resume_file"
-                                            onChange={handleImageChange}
-                                            accept=".pdf, .doc, .docx, .png, .jpg, .jpeg"
-                                            className="hidden"
+                                {questions.map((question) => (
+                                    <div key={question.id}>
+                                        <QuestionField
+                                            question={question}
+                                            handleChange={handleChange}
+                                            handleFileChange={handleFileChange}
+                                            formData={formData}
                                         />
-                                        <div className="bg-gray-100 hover:bg-gray-200 p-3 border rounded-md transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center">
-                                            <FontAwesomeIcon icon={faUpload} className="mr-2" style={{ width: '15px', height: '15px' }} />
-                                            <span>Upload File</span>
-                                        </div>
-                                    </label>
-                                </div>
-                                {formData.resume_file && (
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-semibold text-gray-600 mb-1">Nama File:</label>
-                                        <p>{formData.resume_file.name}</p>
                                     </div>
-                                )}
+                                ))}
                                 <button
                                     type="submit"
                                     className="w-full bg-red-800 text-white py-3 px-4 rounded-md hover:bg-red-600"
@@ -455,6 +486,52 @@ const Presensi = () => {
                 </div>
             </div>
         </Layout>
+    );
+};
+
+const QuestionField = ({ question, handleChange, handleFileChange, formData }) => {
+    return (
+        <div key={question.id}>
+            <fieldset className="mb-4">
+                <legend className="block text-sm font-semibold text-gray-600 mb-1">{question.question}</legend>
+                <ul>
+                    {question.question_type === 'ESSAY' ? (
+                        <li>
+                            <textarea
+                                id={`question_${question.id}`}
+                                name={`question_${question.id}`}
+                                value={formData[`question_${question.id}`] || ''}
+                                onChange={handleChange}
+                                className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
+                            />
+                        </li>
+                    ) : question.question_type === 'UPLOAD' ? (
+                        <li>
+                            <input
+                                type="file"
+                                id={`file_question_${question.id}`}
+                                name={`file_question_${question.id}`}
+                                onChange={(e) => handleFileChange(e, question.id)}
+                                className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
+                            />
+                        </li>
+                    ) : (
+                        question.question_details.map((choice) => (
+                            <li key={choice.id}>
+                                <input
+                                    type="radio"
+                                    id={`choice_${choice.id}`}
+                                    name={`question_${question.id}`}
+                                    value={choice.id}
+                                    onChange={handleChange}
+                                />
+                                <label htmlFor={`choice_${choice.id}`} className="ml-2">{choice.description}</label>
+                            </li>
+                        ))
+                    )}
+                </ul>
+            </fieldset>
+        </div>
     );
 };
 

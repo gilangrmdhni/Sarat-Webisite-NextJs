@@ -12,6 +12,7 @@ import BottomBar from '../components/BottomBar';
 import Link from 'next/link';
 import { useAuth } from './authContext';
 import NewsList from '@/components/NewsList';
+import axios from 'axios';
 
 const HomePage = () => {
     const { user } = useAuth();
@@ -23,18 +24,49 @@ const HomePage = () => {
             setShowSplash(false);
         }, 2000);
 
-        const checkTimeValidity = () => {
-            const currentTime = new Date();
-            const validTime = new Date();
-            validTime.setHours(6, 45, 0); // Set valid time to 06:45
+        const fetchConfig = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error("Token not found");
+                }
+                
+                const response = await axios.get('https://api.nusa-sarat.nuncorp.id/api/v1/config/filter', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
 
-            if (currentTime > validTime) {
+                if (response.data.code === 200) {
+                    const { start_pre_test, end_pre_test } = response.data.body;
+                    const currentTime = new Date();
+
+                    const [startHours, startMinutes] = start_pre_test.split(':');
+                    const startTime = new Date();
+                    startTime.setHours(startHours, startMinutes, 0, 0);
+
+                    const [endHours, endMinutes] = end_pre_test.split(':');
+                    const endTime = new Date();
+                    endTime.setHours(endHours, endMinutes, 0, 0);
+
+                    if (currentTime >= startTime && currentTime <= endTime) {
+                        setIsTimeValid(true);
+                    } else {
+                        setIsTimeValid(false);
+                    }
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    console.error('Unauthorized: Token signature is invalid');
+                    // Handle unauthorized error, for example, redirect to login
+                } else {
+                    console.error('Error fetching config:', error);
+                }
                 setIsTimeValid(false);
             }
         };
 
-        checkTimeValidity();
-        
+        fetchConfig();
         return () => clearTimeout(timer);
     }, []);
 
@@ -118,29 +150,25 @@ const HomePage = () => {
                                         </div>
                                     </Link>
                                     {/* Card 2 - Pre-Test Sarat */}
-                                    <div className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col h-54 ${isTimeValid ? 'hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}>
-                                        <div className="flex items-center justify-center h-32">
-                                            <div className="relative h-40 w-40">
-                                                <Image
-                                                    src={saratImages[0]}
-                                                    alt="Pre-Test Sarat"
-                                                    layout="fill"
-                                                    objectFit="cover"
-                                                    className="rounded-t-lg"
-                                                />
+                                    <Link href={isTimeValid && user ? "/PreTest" : "/Login"}>
+                                        <div className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col h-54 ${isTimeValid ? 'hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}>
+                                            <div className="flex items-center justify-center h-32">
+                                                <div className="relative h-40 w-40">
+                                                    <Image
+                                                        src={saratImages[0]}
+                                                        alt="Pre-Test Sarat"
+                                                        layout="fill"
+                                                        objectFit="cover"
+                                                        className="rounded-t-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
+                                                <h2 className="text-sm font-semibold">Pre-Test Sarat</h2>
+                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
                                             </div>
                                         </div>
-                                        <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
-                                            <h2 className="text-sm font-semibold">Pre-Test Sarat</h2>
-                                            {isTimeValid ? (
-                                                <Link href={user ? "/PreTest" : "/Login"}>
-                                                    <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
-                                                </Link>
-                                            ) : (
-                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
-                                            )}
-                                        </div>
-                                    </div>
+                                    </Link>
                                 </div>
                                 <div className="w-full mt-12 mb-6 bg-gray-200 h-0.5 rounded-sm"></div>
                                 <h1 className="text-2xl font-semibold mb-4 ml-4">News</h1>
