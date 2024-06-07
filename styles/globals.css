@@ -16,10 +16,6 @@
   }
 }
 
-.bg-merah-gelap {
-  background-color: #980E28;
-}
-
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -36,6 +32,7 @@ body {
   }
 }
 
+/* Hexagon Icon */
 .hexagon-icon {
   width: 50px; 
   height: 29px;
@@ -53,10 +50,10 @@ body {
 
 .hexagon-icon::before {
   top: -14px;
-  border-bottom: 14px solid #980E28;
+  border-bottom: 14px solid var(--tw-color-merah-gelap);
 }
 
 .hexagon-icon::after {
   bottom: -14px;
-  border-top: 14px solid #980E28; 
+  border-top: 14px solid var(--tw-color-merah-gelap); 
 }

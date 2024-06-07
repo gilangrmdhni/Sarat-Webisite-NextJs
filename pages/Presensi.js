@@ -280,7 +280,7 @@ const Presensi = () => {
     };
 
     return (
-        <div className="bg-white min-h-full dark:text-white">
+        <div className="bg-customWhite min-h-full dark:text-black">
             <div className="w-full p-4 flex items-center justify-between bg-red-800 text-white">
                 <FontAwesomeIcon icon={faArrowLeft} style={{ width: '20px', height: '20px' }} onClick={() => router.back()} />
                 <h2 className="text-lg font-semibold">Presensi</h2>

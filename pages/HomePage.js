@@ -114,7 +114,7 @@ const HomePage = () => {
         <>
             <Navbar />
             <Layout>
-                <div className='bg-white min-h-full flex flex-col items-center overflow-hidden dark:text-white'>
+                <div className='bg-customWhite min-h-full flex flex-col items-center overflow-hidden dark:text-black'>
                     {showSplash ? <SplashScreen /> : (
                         <>
                             <div className='w-full'>
@@ -177,7 +177,7 @@ const HomePage = () => {
                                         </div>
                                     </Link>
                                 </div>
-                                <div className="w-full mt-6 sm:mt-12 mb-12 bg-gray-200 h-0.5 rounded-sm "></div>
+                                <div className="w-full mt-6 sm:mt-12 mb-12 bg-gray-200 h-0.5 rounded-sm  dark:text-black"></div>
                                 <h1 className="text-2xl font-semibold mb-4 ml-4">Berita</h1>
                                 <div className='flex flex-col items-center px-4 mb-20'>
                                     <NewsList />
