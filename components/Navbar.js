@@ -1,7 +1,7 @@
 // components/Navbar.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import { useAuth } from '../pages/context/authContext'; // Adjust the path based on your project structure
+import { useAuth } from '../pages/context/authContext'; 
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
@@ -21,10 +21,8 @@ const Navbar = () => {
     }
   };
 
-
   // State for managing snackbar visibility
   const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
-
 
   const closeSnackbar = () => {
     setIsSnackbarOpen(false);
@@ -53,7 +51,7 @@ const Navbar = () => {
 
       {/* Snackbar for logout notification */}
       {isSnackbarOpen && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white py-2 px-4 rounded-md shadow-md">
+        <div className="fixed bottom-4 right-4 bg-green-500 text-white py-2 px-4 rounded-lg shadow-md border border-white rounded-lg">
           Anda telah logout. Terima kasih!
           <button className="ml-4 text-white" onClick={closeSnackbar}>
             Tutup
