@@ -58,7 +58,8 @@ const LoginForm = () => {
             </span>
           </div>
         </label>
-        <button type="submit" className="w-full py-2 mt-4 font-semibold text-white bg-red-700 rounded-md hover:bg-red-800">
+        <button 
+        disabled={!username || !password} type="submit" className="w-full py-2 mt-4 font-semibold disabled:bg-slate-400 text-white bg-red-700 rounded-md hover:bg-red-800">
           Login
         </button>
       </form>

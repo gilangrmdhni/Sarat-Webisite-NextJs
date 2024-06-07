@@ -13,7 +13,7 @@ const LoginPage = () => {
     useEffect(() => {
         // Jika pengguna telah login, arahkan ke halaman beranda
         if (user) {
-            router.push('/HomePage');
+            router.push('/');
         }
     }, [user]); // Pastikan untuk menyertakan user sebagai dependensi
 
