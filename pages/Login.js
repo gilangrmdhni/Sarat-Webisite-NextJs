@@ -25,6 +25,11 @@ const LoginPage = () => {
             console.error('Login error:', error.message);
             setError('Username atau password salah. Silakan coba lagi.');
             setShowError(true);
+
+            // Hide the error after 3 seconds
+            setTimeout(() => {
+                setShowError(false);
+            }, 3000);
         }
     };
 
