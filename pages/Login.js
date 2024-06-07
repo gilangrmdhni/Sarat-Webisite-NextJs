@@ -29,7 +29,7 @@ const LoginPage = () => {
 
     return (
         <Layout>
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:text-black">
                 {/* Logo Web Anda */}
                 <img src="images/logo_SAIM.png" alt="Logo Web" className="w-50 h-50 mb-4" />
 
