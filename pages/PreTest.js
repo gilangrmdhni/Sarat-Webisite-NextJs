@@ -552,7 +552,7 @@ const PreTest = () => {
             {showPopup && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white p-6 rounded shadow-md text-center">
-                        <h2 className="text-lg font-semibold mb-4">Data Berhasil Disimpan</h2>
+                        <h2 className="text-lg font-semibold mb-4">Anda telah berhasil mengisi ujian</h2>
                         <button
                             onClick={() => router.push('/HomePage')}
                             className="bg-red-800 text-white py-2 px-4 rounded hover:bg-red-600"
