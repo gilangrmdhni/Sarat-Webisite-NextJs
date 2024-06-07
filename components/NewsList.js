@@ -45,7 +45,7 @@ const NewsList = () => {
     return (
         <div>
             {newsList.map((news) => (
-                <div key={news.id} className="mb-2">
+                <div key={news.id} className="mb-2 dark: text-black">
                     <div key={news.id} className="mb-2" onClick={() => navigateToDetail(news.id)}>
                         <div className="max-w-md mx-auto bg-white rounded-md overflow-hidden shadow-md cursor-pointer">
                             <img
