@@ -142,7 +142,7 @@ const PreTest = () => {
 
     const handleNextPage = async () => {
         if (currentPage === 1) {
-            if (!formData.session_detail_id || !formData.parent_type || !formData.parent_phone || !formData.start_time) {
+            if (!formData.session_detail_id || !formData.parent_type || !formData.parent_phone || !formData.start_time || !formData.institution_id) {
                 alert("Please fill in all required fields.");
                 return;
             }
@@ -165,26 +165,27 @@ const PreTest = () => {
         setLoading(true);
         setError('');
         setSuccess('');
-
+        setErrorMessage('');
+    
         setTimeout(async () => {
             try {
                 const token = localStorage.getItem('token');
                 let dataAnswers = [];
-
+    
                 for (const question of questions) {
                     if (fileInputs[question.id]) {
                         const fileData = new FormData();
                         fileData.append('file', fileInputs[question.id]);
                         fileData.append('destination', 'resume');
                         fileData.append('name', 'resume');
-
+    
                         const uploadResponse = await axios.post('https://api.nusa-sarat.nuncorp.id/api/v1/media/upload', fileData, {
                             headers: {
                                 'Content-Type': 'multipart/form-data',
                                 'Authorization': `Bearer ${token}`,
                             },
                         });
-
+    
                         const fileUrl = uploadResponse.data.body.file_url;
                         dataAnswers.push({
                             question_id: question.id,
@@ -198,7 +199,7 @@ const PreTest = () => {
                         });
                     }
                 }
-
+    
                 const data = {
                     session_detail_id: parseInt(formData.session_detail_id),
                     institution_id: parseInt(formData.institution_id),
@@ -214,7 +215,7 @@ const PreTest = () => {
                     squad: formData.squad,
                     question_answers: dataAnswers,
                 };
-
+    
                 const response = await axios.post(
                     'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
                     data,
@@ -225,7 +226,7 @@ const PreTest = () => {
                         },
                     }
                 );
-
+    
                 console.log('Response dari API:', response.data);
                 setSuccess('Data berhasil disimpan.');
                 setShowPopup(true);
@@ -248,11 +249,13 @@ const PreTest = () => {
             } catch (error) {
                 console.error('Error during form submission:', error);
                 setError('Gagal menyimpan data. Silakan coba lagi.');
+                setErrorMessage(error.message || 'Terjadi kesalahan. Silakan coba lagi.');
+                setShowPopup(true); // Tampilkan popup gagal
             } finally {
                 setLoading(false);
             }
         }, 3000);
-    };
+    };    
 
     const handleSessionChange = (e) => {
         const sessionDetailId = e.target.value;
@@ -298,6 +301,7 @@ const PreTest = () => {
                                     name="session_detail_id"
                                     value={formData.session_detail_id}
                                     onChange={handleSessionChange}
+                                    required
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 >
                                     <option value="" disabled>Pilih Sesi</option>
@@ -313,6 +317,7 @@ const PreTest = () => {
                                     name="parent_type"
                                     value={formData.parent_type}
                                     onChange={handleChange}
+                                    required
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 >
                                     <option value="" disabled>Pilih Wali</option>
@@ -327,6 +332,7 @@ const PreTest = () => {
                                     id="parent_phone"
                                     name="parent_phone"
                                     value={formData.parent_phone}
+                                    required
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 />
@@ -339,6 +345,7 @@ const PreTest = () => {
                                     id="attendance_type"
                                     name="attendance_type"
                                     value={formData.attendance_type}
+                                    required
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 >
@@ -412,6 +419,7 @@ const PreTest = () => {
                                     name="institution_id"
                                     value={formData.institution_id}
                                     onChange={handleChange}
+                                    required
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 >
                                     <option value="" disabled>Pilih Institusi</option>
@@ -552,13 +560,28 @@ const PreTest = () => {
             {showPopup && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white p-6 rounded shadow-md text-center">
-                        <h2 className="text-lg font-semibold mb-4">Anda telah berhasil mengisi ujian</h2>
-                        <button
-                            onClick={() => router.push('/HomePage')}
-                            className="bg-red-800 text-white py-2 px-4 rounded hover:bg-red-600"
-                        >
-                            Home
-                        </button>
+                        {success ? (
+                            <>
+                                <h2 className="text-lg font-semibold mb-4">Anda telah berhasil mengisi ujian</h2>
+                                <button
+                                    onClick={() => router.push('/HomePage')}
+                                    className="bg-red-800 text-white py-2 px-4 rounded hover:bg-red-600"
+                                >
+                                    Home
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-lg font-semibold mb-4 text-red-500">Gagal menyimpan data</h2>
+                                <p className="text-sm text-gray-600 mb-4">{errorMessage}</p>
+                                <button
+                                    onClick={() => setShowPopup(false)}
+                                    className="bg-red-800 text-white py-2 px-4 rounded hover:bg-red-600"
+                                >
+                                    Tutup
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

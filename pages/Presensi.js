@@ -143,7 +143,7 @@ const Presensi = () => {
 
     const handleNextPage = async () => {
         if (currentPage === 1) {
-            if (!formData.session_detail_id || !formData.parent_type || !formData.parent_phone || !formData.start_time) {
+            if (!formData.session_detail_id || !formData.parent_type || !formData.parent_phone || !formData.start_time || !formData.institution_id ) {
                 alert("Please fill in all required fields.");
                 return;
             }
@@ -249,6 +249,8 @@ const Presensi = () => {
             } catch (error) {
                 console.error('Error during form submission:', error);
                 setError('Gagal menyimpan data. Silakan coba lagi.');
+                setErrorMessage(error.message || 'Terjadi kesalahan. Silakan coba lagi.');
+                setShowPopup(true);
             } finally {
                 setLoading(false);
             }
@@ -298,6 +300,7 @@ const Presensi = () => {
                                     id="session_detail_id"
                                     name="session_detail_id"
                                     value={formData.session_detail_id}
+                                    required
                                     onChange={handleSessionChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 >
@@ -313,6 +316,7 @@ const Presensi = () => {
                                     id="parent_type"
                                     name="parent_type"
                                     value={formData.parent_type}
+                                    required
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 >
@@ -328,6 +332,7 @@ const Presensi = () => {
                                     id="parent_phone"
                                     name="parent_phone"
                                     value={formData.parent_phone}
+                                    required
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 />
@@ -340,6 +345,7 @@ const Presensi = () => {
                                     id="attendance_type"
                                     name="attendance_type"
                                     value={formData.attendance_type}
+                                    required
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 >
@@ -412,6 +418,7 @@ const Presensi = () => {
                                     id="institution_id"
                                     name="institution_id"
                                     value={formData.institution_id}
+                                    required
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 >
@@ -550,13 +557,28 @@ const Presensi = () => {
             {showPopup && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white p-6 rounded shadow-md text-center">
-                        <h2 className="text-lg font-semibold mb-4">Anda telah berhasil mengisi ujian</h2>
-                        <button
-                            onClick={() => router.push('/HomePage')}
-                            className="bg-red-800 text-white py-2 px-4 rounded hover:bg-red-600"
-                        >
-                            Home
-                        </button>
+                        {success ? (
+                            <>
+                                <h2 className="text-lg font-semibold mb-4">Anda telah berhasil mengisi ujian</h2>
+                                <button
+                                    onClick={() => router.push('/HomePage')}
+                                    className="bg-red-800 text-white py-2 px-4 rounded hover:bg-red-600"
+                                >
+                                    Home
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-lg font-semibold mb-4 text-red-500">Gagal menyimpan data</h2>
+                                <p className="text-sm text-gray-600 mb-4">{errorMessage}</p>
+                                <button
+                                    onClick={() => setShowPopup(false)}
+                                    className="bg-red-800 text-white py-2 px-4 rounded hover:bg-red-600"
+                                >
+                                    Tutup
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
