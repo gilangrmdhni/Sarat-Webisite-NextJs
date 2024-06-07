@@ -20,6 +20,14 @@ const HomePage = () => {
     const [isTimeValid, setIsTimeValid] = useState(true);
 
     useEffect(() => {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, []);
+
+    useEffect(() => {
         const timer = setTimeout(() => {
             setShowSplash(false);
         }, 2000);
@@ -30,7 +38,7 @@ const HomePage = () => {
                 if (!token) {
                     throw new Error("Token not found");
                 }
-                
+
                 const response = await axios.get('https://api.nusa-sarat.nuncorp.id/api/v1/config/filter', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -106,7 +114,7 @@ const HomePage = () => {
         <>
             <Navbar />
             <Layout>
-                <div className='bg-white min-h-full flex flex-col items-center overflow-hidden'>
+                <div className='bg-white min-h-full flex flex-col items-center overflow-hidden dark:text-white'>
                     {showSplash ? <SplashScreen /> : (
                         <>
                             <div className='w-full'>

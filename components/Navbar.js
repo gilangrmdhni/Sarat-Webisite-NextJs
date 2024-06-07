@@ -1,10 +1,9 @@
 // components/Navbar.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import { useAuth } from '../pages/context/authContext'; 
+import { useAuth } from '../pages/context/authContext'; // Adjust the path based on your project structure
 import { useRouter } from 'next/router';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { FiLogOut } from 'react-icons/fi'; // Import icon from React Icons
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -31,9 +30,9 @@ const Navbar = () => {
   return (
     <>
       <Head>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-xxx" crossorigin="anonymous" />
+        {/* Tidak perlu menyertakan link Font Awesome */}
       </Head>
-      <nav className="bg-merah-gelap p-4 text-white">
+      <nav className="bg-merah-gelap p-4 text-white rounded-b-lg">
         <div className="max-w-custom mx-auto flex items-center justify-between">
           <div className="text-start">
             <div className="text-2xl font-bold mb-2">Assalamualaikum</div>
@@ -44,14 +43,14 @@ const Navbar = () => {
             className="text-white cursor-pointer text-sm"
             onClick={handleLogout}
           >
-            <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 text-sm" />
+            <FiLogOut className="mr-2 text-sm" />
           </button>
         </div>
       </nav>
 
       {/* Snackbar for logout notification */}
       {isSnackbarOpen && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white py-2 px-4 rounded-lg shadow-md border border-white rounded-lg">
+        <div className="fixed bottom-4 right-4 bg-green-500 text-white py-2 px-4 rounded-md shadow-md">
           Anda telah logout. Terima kasih!
           <button className="ml-4 text-white" onClick={closeSnackbar}>
             Tutup
