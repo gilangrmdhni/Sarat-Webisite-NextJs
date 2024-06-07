@@ -17,6 +17,7 @@ const PreTest = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [showPopup, setShowPopup] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');  // Menambahkan state untuk errorMessage
 
     const [sessionOptions, setSessionOptions] = useState([]);
     const [institutionOptions, setInstitutionOptions] = useState([]);
@@ -166,26 +167,39 @@ const PreTest = () => {
         setError('');
         setSuccess('');
         setErrorMessage('');
-    
+
+        // Validasi untuk memastikan semua pertanyaan diisi
+        for (const question of questions) {
+            if (question.question_type === 'UPLOAD' && !fileInputs[question.id]) {
+                setError('Semua pertanyaan harus diisi.');
+                setLoading(false);
+                return;
+            } else if (question.question_type !== 'UPLOAD' && !formData[`question_${question.id}`]) {
+                setError('Semua pertanyaan harus diisi.');
+                setLoading(false);
+                return;
+            }
+        }
+
         setTimeout(async () => {
             try {
                 const token = localStorage.getItem('token');
                 let dataAnswers = [];
-    
+
                 for (const question of questions) {
                     if (fileInputs[question.id]) {
                         const fileData = new FormData();
                         fileData.append('file', fileInputs[question.id]);
                         fileData.append('destination', 'resume');
                         fileData.append('name', 'resume');
-    
+
                         const uploadResponse = await axios.post('https://api.nusa-sarat.nuncorp.id/api/v1/media/upload', fileData, {
                             headers: {
                                 'Content-Type': 'multipart/form-data',
                                 'Authorization': `Bearer ${token}`,
                             },
                         });
-    
+
                         const fileUrl = uploadResponse.data.body.file_url;
                         dataAnswers.push({
                             question_id: question.id,
@@ -199,7 +213,7 @@ const PreTest = () => {
                         });
                     }
                 }
-    
+
                 const data = {
                     session_detail_id: parseInt(formData.session_detail_id),
                     institution_id: parseInt(formData.institution_id),
@@ -215,7 +229,7 @@ const PreTest = () => {
                     squad: formData.squad,
                     question_answers: dataAnswers,
                 };
-    
+
                 const response = await axios.post(
                     'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
                     data,
@@ -226,7 +240,7 @@ const PreTest = () => {
                         },
                     }
                 );
-    
+
                 console.log('Response dari API:', response.data);
                 setSuccess('Data berhasil disimpan.');
                 setShowPopup(true);
@@ -255,7 +269,8 @@ const PreTest = () => {
                 setLoading(false);
             }
         }, 3000);
-    };    
+    };
+
 
     const handleSessionChange = (e) => {
         const sessionDetailId = e.target.value;
