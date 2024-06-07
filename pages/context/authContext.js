@@ -39,7 +39,6 @@ export const AuthProvider = ({ children }) => {
             const token = responseData.body.token;
             localStorage.setItem('token', token);
             console.log('Data token dari panggilan API:', token);
-            // Mendapatkan data pengguna dari token
             const userData = JSON.parse(atob(token.split('.')[1]));
             setUser(userData);
         } else {
@@ -54,7 +53,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
-    // Menghapus data pengguna dari state user saat logout
     setUser(null);
   };
 

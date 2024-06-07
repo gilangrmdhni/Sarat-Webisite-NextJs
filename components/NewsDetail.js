@@ -37,7 +37,7 @@ const NewsDetail = () => {
     }
 
     return (
-        <div>
+        <div className='dark: text-black'>
             <h1 className="text-2xl font-semibold mb-2">{newsDetail.description}</h1>
             <p className="text-gray-600">{newsDetail.createdAt}</p>
             <p>{newsDetail.description}</p>
