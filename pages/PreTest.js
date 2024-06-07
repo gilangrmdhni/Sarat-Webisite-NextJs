@@ -321,7 +321,7 @@ const PreTest = () => {
                                 </select>
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="parent_phone" className="block text-sm font-semibold text-gray-600 mb-1">Nomor Hp Orang Tua:</label>
+                                <label htmlFor="parent_phone" className="block text-sm font-semibold text-gray-600 mb-1">Nomor Hp Wali Murid:</label>
                                 <input
                                     type="text"
                                     id="parent_phone"
