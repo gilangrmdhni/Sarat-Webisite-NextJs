@@ -4,26 +4,14 @@ import { faEye, faEyeSlash, faExclamationCircle } from '@fortawesome/free-solid-
 import { useAuth } from '../pages/context/authContext';
 import { useRouter } from 'next/router';
 
-const LoginForm = () => {
+const LoginForm = ({ onLogin, showError, error }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState(null);
-  const [showError, setShowError] = useState(false);
-  const { login } = useAuth();
-  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    try {
-      await login({ username, password });
-      router.push('/HomePage'); // Atur rute yang sesuai
-    } catch (error) {
-      console.error('Login error:', error.message);
-      setError('Username atau password salah. Silakan coba lagi.');
-      setShowError(true);
-    }
+    onLogin({ username, password });
   };
 
   return (
@@ -58,12 +46,11 @@ const LoginForm = () => {
             </span>
           </div>
         </label>
-        <button 
-        disabled={!username || !password} type="submit" className="w-full py-2 mt-4 font-semibold disabled:bg-slate-400 text-white bg-red-700 rounded-md hover:bg-red-800">
+        <button
+          disabled={!username || !password} type="submit" className="w-full py-2 mt-4 font-semibold disabled:bg-slate-400 text-white bg-red-700 rounded-md hover:bg-red-800">
           Login
         </button>
       </form>
-      {/* Pemberitahuan popup saat login gagal */}
       {showError && (
         <div className="fixed bottom-0 right-0 mb-4 mr-4 p-4 bg-red-500 text-white rounded-md">
           {error}

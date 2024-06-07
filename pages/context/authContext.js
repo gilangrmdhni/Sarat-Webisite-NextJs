@@ -8,12 +8,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Memperbarui state user dengan data pengguna dari local storage
       fetchUserData(token);
     }
   }, []);
 
-  // Fungsi untuk mendapatkan data pengguna berdasarkan token
   const fetchUserData = (token) => {
     try {
       const userData = JSON.parse(atob(token.split('.')[1]));
@@ -35,10 +33,8 @@ export const AuthProvider = ({ children }) => {
 
         if (response.ok) {
             const responseData = await response.json();
-            console.log('Data dari panggilan API:', responseData);
             const token = responseData.body.token;
             localStorage.setItem('token', token);
-            console.log('Data token dari panggilan API:', token);
             const userData = JSON.parse(atob(token.split('.')[1]));
             setUser(userData);
         } else {
@@ -46,10 +42,9 @@ export const AuthProvider = ({ children }) => {
             throw new Error(errorData.message);
         }
     } catch (error) {
-        console.error('Error during login:', error.message);
+        throw error;
     }
-};
-
+  };
 
   const logout = () => {
     localStorage.removeItem('token');
