@@ -37,6 +37,8 @@ const PreTest = () => {
     const [institutionOptions, setInstitutionOptions] = useState([]);
     const [questions, setQuestions] = useState([]);
     const [fileInputs, setFileInputs] = useState({});
+    const [lateHour, setLateHour] = useState('');
+
 
     const fetchQuestions = async (sessionDetailId) => {
         try {
@@ -58,6 +60,35 @@ const PreTest = () => {
             console.error('Error fetching questions:', error);
         }
     };
+
+    useEffect(() => {
+        const fetchLateHour = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const apiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/config/filter';
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+    
+                if (response.ok) {
+                    const responseData = await response.json();
+                    const { late_hour } = responseData.body;
+                    setLateHour(late_hour);
+                } else {
+                    console.error('Failed to fetch late hour:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching late hour:', error);
+            }
+        };
+    
+        fetchLateHour();
+    }, []);
+    
+
 
     useEffect(() => {
         const fetchSessionOptions = async () => {
@@ -335,7 +366,9 @@ const PreTest = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="reason_late" className="block text-sm font-semibold text-gray-600 mb-1"> Alasan Hadir Terlambat (Diisi jika hadir setelah pukul 06.45 WIB):</label>
+                                <label htmlFor="reason_late" className="block text-sm font-semibold text-gray-600 mb-1">
+                                    {`Alasan Terlambat (Diisi jika hadir setelah pukul ${lateHour} WIB):`}
+                                </label>
                                 <input
                                     type="text"
                                     id="reason_late"
@@ -345,6 +378,7 @@ const PreTest = () => {
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 />
                             </div>
+
                             <div className="mb-4">
                                 <label htmlFor="reason_attend_online" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Hadir Online (Diisi jika hadir secara online):</label>
                                 <input

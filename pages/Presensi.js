@@ -33,6 +33,8 @@ const Presensi = () => {
     const [institutionOptions, setInstitutionOptions] = useState([]);
     const [questions, setQuestions] = useState([]);
     const [fileInputs, setFileInputs] = useState({});
+    const [lateHour, setLateHour] = useState('');
+
 
     const fetchQuestions = async (sessionDetailId) => {
         try {
@@ -54,6 +56,34 @@ const Presensi = () => {
             console.error('Error fetching questions:', error);
         }
     };
+    useEffect(() => {
+        const fetchLateHour = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const apiUrl = 'https://api.nusa-sarat.nuncorp.id/api/v1/config/filter';
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+    
+                if (response.ok) {
+                    const responseData = await response.json();
+                    const { late_hour } = responseData.body;
+                    setLateHour(late_hour);
+                } else {
+                    console.error('Failed to fetch late hour:', response.status, response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching late hour:', error);
+            }
+        };
+    
+        fetchLateHour();
+    }, []);
+    
+
 
     useEffect(() => {
         const fetchSessionOptions = async () => {
@@ -276,8 +306,8 @@ const Presensi = () => {
                                         className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                     >
                                         <option value="" disabled>Pilih Wali</option>
-                                        <option value="FATHER">Ayah</option>
-                                        <option value="MOTHER">Bunda</option>
+                                        <option value="Ayah">Ayah</option>
+                                        <option value="Bunda">Bunda</option>
                                     </select>
                                 </div>
                                 <div className="mb-4">
@@ -304,6 +334,8 @@ const Presensi = () => {
                                     >
                                         <option value="Hadir Offline">Hadir Offline</option>
                                         <option value="Hadir Online">Hadir Online</option>
+                                        <option value="Tidak Hadir(Sudah Izin)">Tidak Hadir(Sudah Izin)</option>
+                                        <option value="Tidak Hadir(Ghaib)">Tidak Hadir(Ghaib)</option>
                                     </select>
                                 </div>
                                 <div className="mb-4">
@@ -329,7 +361,9 @@ const Presensi = () => {
                                     />
                                 </div>
                                 <div className="mb-4">
-                                    <label htmlFor="reason_late" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Terlambat:</label>
+                                    <label htmlFor="reason_late" className="block text-sm font-semibold text-gray-600 mb-1">
+                                        {`Alasan Terlambat (Diisi jika hadir setelah pukul ${lateHour} WIB):`}
+                                    </label>
                                     <input
                                         type="text"
                                         id="reason_late"

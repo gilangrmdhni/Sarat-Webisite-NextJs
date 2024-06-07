@@ -43,10 +43,10 @@ const Navbar = () => {
           </div>
           {/* Logout/signout button with icon */}
           <button
-            className="text-white cursor-pointer"
+            className="text-white cursor-pointer text-sm"
             onClick={handleLogout}
           >
-            <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
+            <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 text-sm" />
           </button>
         </div>
       </nav>
