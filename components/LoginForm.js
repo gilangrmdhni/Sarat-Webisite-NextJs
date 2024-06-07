@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../pages/authContext';
+import { useAuth } from '../pages/context/authContext';
 import { useRouter } from 'next/router';
 
 const LoginForm = () => {

@@ -3,42 +3,25 @@ import Layout from '../components/Layout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/router';
-import { useAuth } from './authContext';
+import { useAuth } from './context/authContext';
 import axios from 'axios';
+import { usePreTestData } from './context/PreTestContext';
 
 const PreTest = () => {
     const router = useRouter();
     const { user } = useAuth();
-
+    const { formData, setFormData, questions, setQuestions } = usePreTestData();
     const user_id = user?.user_id || null;
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [formData, setFormData] = useState({
-        session_detail_id: '',
-        parent_type: '',
-        student_name: '',
-        student_class: '',
-        parent_name: '',
-        parent_phone: '',
-        start_time: '',
-        end_time: '',
-        reason_late: '',
-        institution_id: '',
-        attendance_type: 'Hadir Offline',
-        reason_attend_online: '',
-        reason_absent: '',
-        squad: '',
-        session_answer_id: '',
-    });
+    const [showPopup, setShowPopup] = useState(false);
 
     const [sessionOptions, setSessionOptions] = useState([]);
     const [institutionOptions, setInstitutionOptions] = useState([]);
-    const [questions, setQuestions] = useState([]);
     const [fileInputs, setFileInputs] = useState({});
     const [lateHour, setLateHour] = useState('');
-
 
     const fetchQuestions = async (sessionDetailId) => {
         try {
@@ -72,7 +55,7 @@ const PreTest = () => {
                         'Authorization': `Bearer ${token}`,
                     },
                 });
-    
+
                 if (response.ok) {
                     const responseData = await response.json();
                     const { late_hour } = responseData.body;
@@ -84,13 +67,7 @@ const PreTest = () => {
                 console.error('Error fetching late hour:', error);
             }
         };
-    
-        fetchLateHour();
-    }, []);
-    
 
-
-    useEffect(() => {
         const fetchSessionOptions = async () => {
             const token = localStorage.getItem('token');
             try {
@@ -136,9 +113,16 @@ const PreTest = () => {
             }
         };
 
+        fetchLateHour();
         fetchSessionOptions();
         fetchInstitutionOptions();
     }, []);
+
+    useEffect(() => {
+        if (formData.session_detail_id) {
+            fetchQuestions(formData.session_detail_id);
+        }
+    }, [formData.session_detail_id]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -158,23 +142,21 @@ const PreTest = () => {
 
     const handleNextPage = async () => {
         if (currentPage === 1) {
-            // Validasi halaman pertama
             if (!formData.session_detail_id || !formData.parent_type || !formData.parent_phone || !formData.start_time) {
                 alert("Please fill in all required fields.");
                 return;
             }
             if (formData.institution_id === '5') {
-                setCurrentPage(currentPage + 1); // Navigate to page 2 (Squad selection) if institution is 'Squad AIM'
+                setCurrentPage(currentPage + 1);
             } else {
-                setCurrentPage(currentPage + 2); // Navigate directly to page 3 (Questions) for other institutions
+                setCurrentPage(currentPage + 2);
             }
         } else if (currentPage === 2) {
-            // Validasi halaman kedua
             if (formData.institution_id === '5' && !formData.squad) {
                 alert("Please select a squad.");
                 return;
             }
-            setCurrentPage(currentPage + 1); // Navigate to page 3 (Questions)
+            setCurrentPage(currentPage + 1);
         }
     };
 
@@ -184,70 +166,92 @@ const PreTest = () => {
         setError('');
         setSuccess('');
 
-        try {
-            const token = localStorage.getItem('token');
-            let dataAnswers = [];
+        setTimeout(async () => {
+            try {
+                const token = localStorage.getItem('token');
+                let dataAnswers = [];
 
-            questions.forEach((question) => {
-                const selectedAnswer = formData[`question_${question.id}`];
-                dataAnswers.push({
-                    question_id: question.id,
-                    answer: selectedAnswer || '',
+                for (const question of questions) {
+                    if (fileInputs[question.id]) {
+                        const fileData = new FormData();
+                        fileData.append('file', fileInputs[question.id]);
+                        fileData.append('destination', 'resume');
+                        fileData.append('name', 'resume');
+
+                        const uploadResponse = await axios.post('https://api.nusa-sarat.nuncorp.id/api/v1/media/upload', fileData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data',
+                                'Authorization': `Bearer ${token}`,
+                            },
+                        });
+
+                        const fileUrl = uploadResponse.data.body.file_url;
+                        dataAnswers.push({
+                            question_id: question.id,
+                            answer: fileUrl,
+                        });
+                    } else {
+                        const selectedAnswer = formData[`question_${question.id}`];
+                        dataAnswers.push({
+                            question_id: question.id,
+                            answer: selectedAnswer || '',
+                        });
+                    }
+                }
+
+                const data = {
+                    session_detail_id: parseInt(formData.session_detail_id),
+                    institution_id: parseInt(formData.institution_id),
+                    attendance_type: formData.attendance_type,
+                    flag: 'PRE_TEST',
+                    parent_type: formData.parent_type,
+                    parent_phone: formData.parent_phone,
+                    start_time: formData.start_time,
+                    end_time: formData.end_time,
+                    reason_late: formData.reason_late,
+                    reason_attend_online: formData.reason_attend_online,
+                    reason_absent: formData.reason_absent,
+                    squad: formData.squad,
+                    question_answers: dataAnswers,
+                };
+
+                const response = await axios.post(
+                    'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
+                    data,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
+
+                console.log('Response dari API:', response.data);
+                setSuccess('Data berhasil disimpan.');
+                setShowPopup(true);
+                setFormData({
+                    session_detail_id: '',
+                    parent_type: '',
+                    parent_phone: '',
+                    start_time: '',
+                    end_time: '',
+                    reason_late: '',
+                    reason_attend_online: '',
+                    reason_absent: '',
+                    resume: '',
+                    institution_id: '',
+                    attendance_type: 'Hadir Offline',
+                    flag: 'PRE_TEST',
+                    resume_file: null,
+                    squad: '',
                 });
-
-                if (fileInputs[question.id]) {
-                    dataAnswers.push({
-                        question_id: question.id,
-                        answer: fileInputs[question.id],
-                    });
-                }
-                router.push('/HomePage');
-            });
-
-            const submissionData = {
-                session_detail_id: parseInt(formData.session_detail_id),
-                institution_id: parseInt(formData.institution_id),
-                attendance_type: formData.attendance_type,
-                flag: 'PRE_TEST',
-                parent_type: formData.parent_type,
-                parent_phone: formData.parent_phone,
-                start_time: formData.start_time,
-                end_time: formData.end_time,
-                reason_late: formData.reason_late,
-                reason_attend_online: formData.reason_attend_online,
-                reason_absent: formData.reason_absent,
-                squad: formData.squad,
-                question_answers: dataAnswers,
-            };
-
-            const response = await axios.post(
-                'https://api.nusa-sarat.nuncorp.id/api/v1/session/answer',
-                submissionData,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-
-            console.log('Response dari API:', response.data);
-            setSuccess('Data berhasil disimpan.');
-        } catch (error) {
-            if (error.response) {
-                console.error('Response error data:', error.response.data);
-                console.error('Response error status:', error.response.status);
-                console.error('Response error headers:', error.response.headers);
-            } else if (error.request) {
-                console.error('Request error data:', error.request);
-            } else {
-                console.error('General error message:', error.message);
+            } catch (error) {
+                console.error('Error during form submission:', error);
+                setError('Gagal menyimpan data. Silakan coba lagi.');
+            } finally {
+                setLoading(false);
             }
-            console.error('Full error config:', error.config);
-            setError('Gagal menyimpan data. Silakan coba lagi.');
-        } finally {
-            setLoading(false);
-        }
+        }, 3000);
     };
 
     const handleSessionChange = (e) => {
@@ -263,22 +267,28 @@ const PreTest = () => {
     };
 
     const handlePrevPage = () => {
-        setCurrentPage(currentPage - 1);
+        if (currentPage === 3) {
+            if (formData.institution_id === '5') {
+                setCurrentPage(2);
+            } else {
+                setCurrentPage(1);
+            }
+        } else {
+            setCurrentPage(1);
+        }
     };
 
     return (
-        <div className="bg-white ">
+        <div className="bg-white min-h-full">
             <div className="w-full p-4 flex items-center justify-between bg-red-800 text-white">
                 <FontAwesomeIcon icon={faArrowLeft} style={{ width: '20px', height: '20px' }} onClick={() => router.back()} />
                 <h2 className="text-lg font-semibold">Pre-Test</h2>
                 <div className="w-6" />
             </div>
             <div className="p-4">
-                <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-6 rounded shadow-md w-full">
-                    {loading && <p className="text-center text-red-500">Loading...</p>}
+                <form onSubmit={handleSubmit} className="max-w-md mx-auto">
                     {error && <p className="text-center text-red-500">{error}</p>}
                     {success && <p className="text-center text-green-500">{success}</p>}
-                    {/* Page 1 */}
                     {currentPage === 1 && (
                         <>
                             <div className="mb-4">
@@ -289,7 +299,6 @@ const PreTest = () => {
                                     value={formData.session_detail_id}
                                     onChange={handleSessionChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    required
                                 >
                                     <option value="" disabled>Pilih Sesi</option>
                                     {sessionOptions.map((session) => (
@@ -305,7 +314,6 @@ const PreTest = () => {
                                     value={formData.parent_type}
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    required
                                 >
                                     <option value="" disabled>Pilih Wali</option>
                                     <option value="FATHER">Ayah</option>
@@ -313,7 +321,7 @@ const PreTest = () => {
                                 </select>
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="parent_phone" className="block text-sm font-semibold text-gray-600 mb-1">Nomor HP Wali Murid:</label>
+                                <label htmlFor="parent_phone" className="block text-sm font-semibold text-gray-600 mb-1">Nomor Hp Orang Tua:</label>
                                 <input
                                     type="text"
                                     id="parent_phone"
@@ -321,7 +329,6 @@ const PreTest = () => {
                                     value={formData.parent_phone}
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    required
                                 />
                             </div>
                             <div className="mb-4">
@@ -334,12 +341,11 @@ const PreTest = () => {
                                     value={formData.attendance_type}
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    required
                                 >
                                     <option value="Hadir Offline">Hadir Offline</option>
                                     <option value="Hadir Online">Hadir Online</option>
-                                    <option value="Tidak hadir (sudah izin)">Tidak hadir (sudah izin)</option>
-                                    <option value="Tidak hadir (Ghaib)">Tidak hadir (Ghaib)</option>
+                                    <option value="Tidak Hadir(Sudah Izin)">Tidak Hadir(Sudah Izin)</option>
+                                    <option value="Tidak Hadir(Ghaib)">Tidak Hadir(Ghaib)</option>
                                 </select>
                             </div>
                             <div className="mb-4">
@@ -351,7 +357,6 @@ const PreTest = () => {
                                     value={formData.start_time}
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    required
                                 />
                             </div>
                             <div className="mb-4">
@@ -378,30 +383,28 @@ const PreTest = () => {
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 />
                             </div>
-
                             <div className="mb-4">
                                 <label htmlFor="reason_attend_online" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Hadir Online (Diisi jika hadir secara online):</label>
                                 <input
-                                    type="text"
                                     id="reason_attend_online"
                                     name="reason_attend_online"
                                     value={formData.reason_attend_online}
                                     onChange={handleChange}
+                                    rows="4"
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 />
                             </div>
                             <div className="mb-4">
-                                <label htmlFor="reason_absent" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Tidak Hadir Sama Sekali (Diisi jika tidak hadir baik offline maupun online):</label>
+                                <label htmlFor="reason_absent" className="block text-sm font-semibold text-gray-600 mb-1">Alasan Tidak Hadir Sama Sekali di Hari Offline (Diisi jika tidak hadir baik offline maupun online):</label>
                                 <input
-                                    type="text"
                                     id="reason_absent"
                                     name="reason_absent"
                                     value={formData.reason_absent}
                                     onChange={handleChange}
+                                    rows="4"
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
                                 />
                             </div>
-
                             <div className="mb-4">
                                 <label htmlFor="institution_id" className="block text-sm font-semibold text-gray-600 mb-1">Pilih Institusi:</label>
                                 <select
@@ -410,12 +413,10 @@ const PreTest = () => {
                                     value={formData.institution_id}
                                     onChange={handleChange}
                                     className="w-full p-3 border rounded-md focus:outline-none focus:border-red-500"
-                                    required
                                 >
                                     <option value="" disabled>Pilih Institusi</option>
-                                    {institutionOptions.map((institution) => (
+                                    {institutionOptions.map((institution, index) => (
                                         <option key={institution.id} value={institution.id}>{institution.name}</option>
-
                                     ))}
                                 </select>
                             </div>
@@ -428,79 +429,82 @@ const PreTest = () => {
                             </button>
                         </>
                     )}
-                    {/* Page 2 */}
                     {currentPage === 2 && formData.institution_id === '5' && (
                         <>
-                            <div className="mb-4 h-screen bg-white p-6 rounded shadow-md w-full max-w-lg">
-                                <fieldset className="mb-4">
-                                    <legend className="block text-sm font-semibold text-gray-600 mb-1">Squad</legend>
-                                    <ul>
-                                        <li>
-                                            <input
-                                                type="radio"
-                                                id="squad_1"
-                                                name="squad"
-                                                value="Abu Hanifah"
-                                                onChange={handleChange}
-                                                className='mr-2'
-                                            />
-                                            <label htmlFor="squad_1" className="ml-2">Abu Hanifah</label>
-                                        </li>
-                                        <li>
-                                            <input
-                                                type="radio"
-                                                id="squad_2"
-                                                name="squad"
-                                                value="Syafi'i"
-                                                onChange={handleChange}
-                                                className='mr-2'
-                                            />
-                                            <label htmlFor="squad_2" className="ml-2">Syafi{"'"}i</label>
-                                        </li>
-                                        <li>
-                                            <input
-                                                type="radio"
-                                                id="squad_3"
-                                                name="squad"
-                                                value="Maliki"
-                                                onChange={handleChange}
-                                                className='mr-2'
-                                            />
-                                            <label htmlFor="squad_3" className="ml-2">Maliki</label>
-                                        </li>
-                                        <li>
-                                            <input
-                                                type="radio"
-                                                id="squad_4"
-                                                name="squad"
-                                                value="Hanbali"
-                                                onChange={handleChange}
-                                                className='mr-2'
-                                            />
-                                            <label htmlFor="squad_4" className="ml-2">Hanbali</label>
-                                        </li>
-                                    </ul>
-                                </fieldset>
-
-                                <button
-                                    type="button"
-                                    onClick={handleNextPage}
-                                    className="w-full bg-red-800 text-white py-3 px-4 rounded-md hover:bg-red-600"
-                                >
-                                    Next
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handlePrevPage}
-                                    className="w-full mt-4 border border-gray-300 py-3 px-4 rounded-md hover:border-red-500"
-                                >
-                                    Previous
-                                </button>
+                            <div className="mb-4 h-screen p-6 rounded shadow-md w-full max-w-lg">
+                                <label className="block text-sm font-semibold text-gray-600 mb-1">Squad:</label>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="squad"
+                                            value="Abu Hanifah"
+                                            onChange={handleChange}
+                                            checked={formData.squad === 'Abu Hanifah'}
+                                            className='mr-2'
+                                        />
+                                        Abu Hanifah
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="squad"
+                                            value="Syafi'i"
+                                            onChange={handleChange}
+                                            checked={formData.squad === "Syafi'i"}
+                                            className='mr-2'
+                                        />
+                                        Syafi{"'"}i
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="squad"
+                                            value="Maliki"
+                                            onChange={handleChange}
+                                            checked={formData.squad === 'Maliki'}
+                                            className='mr-2'
+                                        />
+                                        Maliki
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="squad"
+                                            value="Hanbali"
+                                            onChange={handleChange}
+                                            checked={formData.squad === 'Hanbali'}
+                                            className='mr-2'
+                                        />
+                                        Hanbali
+                                    </label>
+                                </div>
+                                <div className='mt-8'>
+                                    <button
+                                        type="button"
+                                        onClick={handleNextPage}
+                                        className="w-full bg-red-800 text-white py-3 px-4 rounded-md hover:bg-red-600"
+                                    >
+                                        Next
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handlePrevPage}
+                                        className="w-full mt-4 border border-gray-300 py-3 px-4 rounded-md hover:border-red-500"
+                                    >
+                                        Previous
+                                    </button>
+                                </div>
                             </div>
-
                         </>
                     )}
-                    {currentPage === 3 && (
+                    {currentPage === 3 && questions.length > 0 && (
                         <>
                             {questions.map((question) => (
                                 <div key={question.id}>
@@ -514,21 +518,50 @@ const PreTest = () => {
                             ))}
                             <button
                                 type="submit"
-                                className="w-full bg-red-800 text-white py-3 px-4 rounded-md hover:bg-red-600"
+                                className={`w-full py-3 px-4 rounded-md ${loading ? 'bg-gray-400' : 'bg-red-800 hover:bg-red-600'} text-white`}
+                                disabled={loading}
                             >
-                                Submit
+                                {loading ? 'Loading...' : 'Submit'}
                             </button>
                             <button
                                 type="button"
-                                onClick={handlePrevPage}
+                                onClick={() => {
+                                    if (currentPage === 3) {
+                                        if (formData.institution_id === '5') {
+                                            setCurrentPage(2); // Jika di page 3 dan institution_id adalah '5', kembali ke page 2
+                                        } else {
+                                            setCurrentPage(1); // Jika di page 3 dan institution_id bukan '5', kembali ke page 1
+                                        }
+                                    } else {
+                                        setCurrentPage(1); // Kembali ke page 1 jika saat ini di page 2
+                                    }
+                                }}
                                 className="w-full mt-4 border border-gray-300 py-3 px-4 rounded-md hover:border-red-500"
+                                disabled={loading}
                             >
                                 Previous
                             </button>
+
                         </>
+                    )}
+                    {currentPage === 3 && questions.length === 0 && (
+                        <p className="text-center text-red-500">No questions available for this session.</p>
                     )}
                 </form>
             </div>
+            {showPopup && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded shadow-md text-center">
+                        <h2 className="text-lg font-semibold mb-4">Data Berhasil Disimpan</h2>
+                        <button
+                            onClick={() => router.push('/HomePage')}
+                            className="bg-red-800 text-white py-2 px-4 rounded hover:bg-red-600"
+                        >
+                            Home
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

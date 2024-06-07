@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from './authContext';
+import { useAuth } from './context/authContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import Layout from '@/components/Layout';

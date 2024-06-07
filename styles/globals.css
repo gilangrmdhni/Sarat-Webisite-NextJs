@@ -36,12 +36,9 @@ body {
   }
 }
 
-
-
-/* Add these styles to your CSS stylesheet */
 .hexagon-icon {
-  width: 50px; /* Adjust the size as needed */
-  height: 29px; /* Adjust the size as needed */
+  width: 50px; 
+  height: 29px;
   position: relative;
 }
 
@@ -56,10 +53,10 @@ body {
 
 .hexagon-icon::before {
   top: -14px;
-  border-bottom: 14px solid #980E28; /* Adjust the color as needed */
+  border-bottom: 14px solid #980E28;
 }
 
 .hexagon-icon::after {
   bottom: -14px;
-  border-top: 14px solid #980E28; /* Adjust the color as needed */
+  border-top: 14px solid #980E28; 
 }

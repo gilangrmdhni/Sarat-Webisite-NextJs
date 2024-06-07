@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import BottomBar from '../components/BottomBar';
 import Link from 'next/link';
-import { useAuth } from './authContext';
+import { useAuth } from './context/authContext';
 import NewsList from '@/components/NewsList';
 import axios from 'axios';
 

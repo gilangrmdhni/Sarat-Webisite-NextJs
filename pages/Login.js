@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import LoginForm from '../components/LoginForm';
-import { useAuth } from './authContext';
+import { useAuth } from './context/authContext';
 import Layout from '@/components/Layout';
 
 const LoginPage = () => {

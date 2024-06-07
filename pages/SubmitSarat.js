@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/router';
-import { useAuth } from './authContext';
+import { useAuth } from './context/authContext';
 import axios from 'axios';
 
 const SubmitSarat = () => {

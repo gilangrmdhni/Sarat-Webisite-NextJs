@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../pages/authContext';
+import { useAuth } from '../pages/context/authContext';
 
 const BottomBar = () => {
   const { user, logout } = useAuth();

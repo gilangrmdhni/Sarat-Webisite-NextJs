@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faCalendarAlt, faHistory } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../pages/authContext'; // Sesuaikan path dengan struktur proyek Anda
+import { useAuth } from './context/authContext'; // Sesuaikan path dengan struktur proyek Anda
 
 const HistorySarat = () => {
     const router = useRouter();

@@ -1,7 +1,7 @@
 // components/Navbar.js
 import React, { useState } from 'react';
 import Head from 'next/head';
-import { useAuth } from '../pages/authContext'; // Adjust the path based on your project structure
+import { useAuth } from '../pages/context/authContext'; // Adjust the path based on your project structure
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
