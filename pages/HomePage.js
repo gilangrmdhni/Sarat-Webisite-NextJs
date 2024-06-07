@@ -177,7 +177,7 @@ const HomePage = () => {
                                         </div>
                                     </Link>
                                 </div>
-                                <div className="w-full mt-6 sm:mt-12 mb-6 bg-gray-400 h-1 rounded-sm  dark:text-black"></div>
+                                <div className="w-full mt-6 sm:mt-12 mb-6 bg-gray-300 h-1 rounded-sm  dark:text-black"></div>
                                 <h1 className="text-2xl font-semibold mb-4 mt-2 ml-4">Berita</h1>
                                 <div className='flex flex-col items-center px-4 mb-20'>
                                     <NewsList />
