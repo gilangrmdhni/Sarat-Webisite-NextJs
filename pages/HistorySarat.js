@@ -1,84 +1,100 @@
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import Layout from '../components/Layout';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from './context/authContext';
+import Layout from '@/components/Layout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faCalendarAlt, faHistory } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from './context/authContext'; // Sesuaikan path dengan struktur proyek Anda
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 
-const HistorySarat = () => {
+const History = () => {
+    const { user } = useAuth();
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const router = useRouter();
-    const { user } = useAuth(); // Ambil data user dari context
-    const userId = user?.body?.id; // Ambil ID pengguna dari data user
-
-    const [historyItems, setHistoryItems] = useState([]);
 
     useEffect(() => {
-        // Fetch history data from the API using the user's ID
-        const fetchHistoryData = async () => {
-            try {
-                if (userId) {
-                    const apiUrl = `https://api.nusa-sarat.nuncorp.id/api/v1/session/resume/history/${userId}`;
-                    const response = await fetch(apiUrl);
+        const fetchHistory = async () => {
+            setLoading(true);
+            setError(null);
 
-                    if (response.ok) {
-                        const historyData = await response.json();
-                        setHistoryItems(historyData.body); // Assuming the API response has a "body" property containing the history items
-                    } else {
-                        console.error('API Error:', response.status, response.statusText);
-                        // Handle API error scenario
-                    }
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Anda harus login untuk melihat riwayat');
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const response = await fetch('https://api.nusa-sarat.nuncorp.id/api/v1/session/report?user_id=24', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setHistory(data.body);
                 } else {
-                    console.error('User ID not available.');
-                    // Handle the case where user ID is not available
+                    const errorData = await response.json();
+                    setError(errorData.message || 'Gagal mengambil data riwayat');
                 }
-            } catch (error) {
-                console.error('Error fetching history data:', error);
-                // Handle other errors
+            } catch (err) {
+                setError('Terjadi kesalahan. Silakan coba lagi.');
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchHistoryData();
-    }, [userId]); // Add userId to the dependency array to fetch data when userId changes
+        fetchHistory();
+    }, []);
 
     return (
         <Layout>
-            <div className="bg-white min-h-screen">
-                <div className="w-full p-4 flex items-center justify-between bg-red-800 text-white">
-                    <FontAwesomeIcon icon={faArrowLeft} style={{ width: '20px', height: '20px' }} onClick={() => router.back()} />
-                    <h2 className="text-lg font-semibold">History Sarat</h2>
-                    <div className="w-6" />
-                </div>
-                <div className="p-4">
-                    <div className="max-w-md mx-auto">
-                        <ul className="list-none">
-                            {historyItems.map((item, index) => (
-                                <li key={index} className="mb-6 bg-gray-100 p-4 rounded-md">
-                                    <div className="flex items-center mb-2">
-                                        <div className="bg-red-800 text-white rounded-full p-2 mr-4">
-                                            <FontAwesomeIcon icon={faHistory} style={{ width: '18px', height: '18px' }} />
+            <div className="w-full p-4 flex items-center justify-between bg-red-800 text-white">
+                <FontAwesomeIcon
+                    icon={faArrowLeft}
+                    style={{ width: '20px', height: '20px' }}
+                    onClick={() => router.back()}
+                    className="cursor-pointer"
+                />
+                <h2 className="text-lg font-semibold">Riwayat Sesi</h2>
+                <div className="w-6" />
+            </div>
+            <div className="container mx-auto p-8">
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                    {loading && <p className="text-center">Loading...</p>}
+                    {error && <p className="text-red-600 mb-4">{error}</p>}
+                    {!loading && !error && (
+                        <div className="space-y-4">
+                            {history.map((session) => (
+                                <Link href={`/history/${session.id}`} key={session.id} legacyBehavior>
+                                    <a className="block bg-gray-100 p-4 rounded-lg shadow-inner hover:bg-gray-200">
+                                        <div className="mb-2">
+                                            <label className="block text-sm font-semibold text-gray-600 mb-1">Judul Sesi:</label>
+                                            <p className="text-lg text-gray-800 font-semibold">{session.session_detail.title}</p>
                                         </div>
                                         <div>
-                                            <p className="text-gray-600">
-                                                <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" style={{ width: '18px', height: '18px' }} />
-                                                {item.createdAt} {/* Tampilkan tanggal atau waktu yang sesuai */}
-                                            </p>
+                                            <label className="block text-sm font-semibold text-gray-600 mb-1">Deskripsi:</label>
+                                            <p className="text-lg text-gray-800 font-semibold">{session.session_detail.description}</p>
                                         </div>
-                                    </div>
-                                    <p className="font-semibold">{item.event}</p>
-                                    <p>{item.student_name} - {item.student_class}</p>
-                                    <p>Attendance Type: {item.attendance_type}</p>
-                                    <p>Parent: {item.parent_name} ({item.parent_type})</p>
-                                    <p>Reason for Late: {item.reason_late}</p>
-                                    <p>Resume: {item.resume}</p>
-                                    {/* Tambahkan informasi lain yang diperlukan */}
-                                </li>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-600 mb-1">Waktu Mulai:</label>
+                                            <p className="text-lg text-gray-800 font-semibold">{session.start_time}</p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-600 mb-1">Waktu Selesai:</label>
+                                            <p className="text-lg text-gray-800 font-semibold">{session.end_time || '-'}</p>
+                                        </div>
+                                    </a>
+                                </Link>
                             ))}
-                        </ul>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </Layout>
     );
 };
 
-export default HistorySarat;
+export default History;

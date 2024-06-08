@@ -1,48 +1,58 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetchUserData(token);
+  const fetchProfile = useCallback(async (token) => {
+    try {
+      const response = await fetch('https://api.nusa-sarat.nuncorp.id/api/v1/auth/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const profileData = await response.json();
+        setUser(profileData.body); // Set profile data to user state
+      } else {
+        console.error('Failed to fetch profile:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error.message);
     }
   }, []);
 
-  const fetchUserData = (token) => {
-    try {
-      const userData = JSON.parse(atob(token.split('.')[1]));
-      setUser(userData);
-    } catch (error) {
-      console.error('Error decoding token:', error.message);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchProfile(token); // Fetch profile data on initial load if token exists
     }
-  };
+  }, [fetchProfile]);
 
   const login = async ({ username, password }) => {
     try {
-        const response = await fetch('https://api.nusa-sarat.nuncorp.id/api/v1/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-        });
+      const response = await fetch('https://api.nusa-sarat.nuncorp.id/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-        if (response.ok) {
-            const responseData = await response.json();
-            const token = responseData.body.token;
-            localStorage.setItem('token', token);
-            const userData = JSON.parse(atob(token.split('.')[1]));
-            setUser(userData);
-        } else {
-            const errorData = await response.json();
-            throw new Error(errorData.message);
-        }
+      if (response.ok) {
+        const responseData = await response.json();
+        const token = responseData.body.token;
+        localStorage.setItem('token', token);
+        fetchProfile(token); // Fetch profile data after successful login
+      } else {
+        const errorData = await response.json();
+        console.error('Login failed:', errorData.message);
+        throw new Error(errorData.message);
+      }
     } catch (error) {
-        throw error;
+      console.error('Login error:', error.message);
+      alert('Login failed: ' + error.message);
     }
   };
 
@@ -52,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, fetchProfile }}>
       {children}
     </AuthContext.Provider>
   );

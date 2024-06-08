@@ -36,15 +36,8 @@ const Navbar = () => {
         <div className="max-w-custom mx-auto flex items-center justify-between">
           <div className="text-start">
             <div className="text-2xl font-bold mb-2">Assalamualaikum</div>
-            <div className="text-lg">{user?.username}</div>
+            <div className="text-lg">{user?.fullname}</div>
           </div>
-          {/* Logout/signout button with icon */}
-          <button
-            className="text-white cursor-pointer text-sm"
-            onClick={handleLogout}
-          >
-            <FiLogOut className="mr-2 text-sm" />
-          </button>
         </div>
       </nav>
 

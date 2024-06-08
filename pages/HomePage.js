@@ -88,6 +88,7 @@ const HomePage = () => {
         '/images/exam.png',
         '/images/Accept.png',
         '/images/history_nusa.png',
+        '/images/riwayat.png',
     ];
 
     const settings = {
@@ -135,7 +136,7 @@ const HomePage = () => {
                                         ))}
                                     </Slider>
                                 </div>
-                                <div className="mt-6 sm:mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4 px-4">
+                                <div className="mt-6 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 px-4">
                                     {/* Card 1 - Submit Sarat */}
                                     <Link href={user ? "/Presensi" : "/Login"}>
                                         <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105 flex flex-col h-54">
@@ -172,6 +173,26 @@ const HomePage = () => {
                                             </div>
                                             <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
                                                 <h2 className="text-sm font-semibold">Pre-Test Sarat</h2>
+                                                <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
+                                            </div>
+                                        </div>
+                                    </Link>
+                                    {/* Card 3 - Riwayat Sarat */}
+                                    <Link href={isTimeValid && user ? "/HistorySarat" : "/Login"}>
+                                        <div className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col h-54 ${isTimeValid ? 'hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}>
+                                            <div className="flex items-center justify-center h-32">
+                                                <div className="relative h-32 w-32 sm:h-40 sm:w-40">
+                                                    <Image
+                                                        src={saratImages[3]}
+                                                        alt="Riwayat Sarat"
+                                                        layout="fill"
+                                                        objectFit="cover"
+                                                        className="rounded-t-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-red-800 text-white rounded-b-lg flex items-center justify-between">
+                                                <h2 className="text-sm font-semibold">Riwayat Sarat</h2>
                                                 <FontAwesomeIcon icon={faArrowRight} style={{ width: '20px', height: '20px' }} />
                                             </div>
                                         </div>
