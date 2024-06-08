@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 const History = () => {
     const { user } = useAuth();
-    const [history, setHistory] = useState([]);
+    const [history, setHistory] = useState(null); // Initialize with null
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const router = useRouter();
@@ -34,7 +34,7 @@ const History = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    setHistory(data.body);
+                    setHistory(data.body || []); // Set to an empty array if data.body is null
                 } else {
                     const errorData = await response.json();
                     setError(errorData.message || 'Gagal mengambil data riwayat');
@@ -66,30 +66,36 @@ const History = () => {
                     {loading && <p className="text-center">Loading...</p>}
                     {error && <p className="text-red-600 mb-4">{error}</p>}
                     {!loading && !error && (
-                        <div className="space-y-4">
-                            {history.map((session) => (
-                                <Link href={`/history/${session.id}`} key={session.id} legacyBehavior>
-                                    <a className="block bg-gray-100 p-4 rounded-lg shadow-inner hover:bg-gray-200">
-                                        <div className="mb-2">
-                                            <label className="block text-sm font-semibold text-gray-600 mb-1">Judul Sesi:</label>
-                                            <p className="text-lg text-gray-800 font-semibold">{session.session_detail.title}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-600 mb-1">Deskripsi:</label>
-                                            <p className="text-lg text-gray-800 font-semibold">{session.session_detail.description}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-600 mb-1">Waktu Mulai:</label>
-                                            <p className="text-lg text-gray-800 font-semibold">{session.start_time}</p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-600 mb-1">Waktu Selesai:</label>
-                                            <p className="text-lg text-gray-800 font-semibold">{session.end_time || '-'}</p>
-                                        </div>
-                                    </a>
-                                </Link>
-                            ))}
-                        </div>
+                        <>
+                            {history === null || history.length === 0 ? (
+                                <p className="text-center text-gray-600">Tidak ada data riwayat sesi yang tersedia.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {history.map((session) => (
+                                        <Link href={`/history/${session.id}`} key={session.id} legacyBehavior>
+                                            <a className="block bg-gray-100 p-4 rounded-lg shadow-inner hover:bg-gray-200">
+                                                <div className="mb-2">
+                                                    <label className="block text-sm font-semibold text-gray-600 mb-1">Judul Sesi:</label>
+                                                    <p className="text-lg text-gray-800 font-semibold">{session.session_detail.title}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-600 mb-1">Deskripsi:</label>
+                                                    <p className="text-lg text-gray-800 font-semibold">{session.session_detail.description}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-600 mb-1">Waktu Mulai:</label>
+                                                    <p className="text-lg text-gray-800 font-semibold">{session.start_time}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-600 mb-1">Waktu Selesai:</label>
+                                                    <p className="text-lg text-gray-800 font-semibold">{session.end_time || '-'}</p>
+                                                </div>
+                                            </a>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
