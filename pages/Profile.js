@@ -26,7 +26,7 @@ const Profile = () => {
                     <h2 className="text-lg font-semibold">Profil</h2>
                     <div className="w-6" />
                 </div>
-                <div className="container mx-auto p-8 mt-32">
+                <div className="container mx-auto p-8 mt-32 mb-20">
                     <div className="bg-white p-6 rounded-lg shadow-lg">
                         <div className="mb-8 text-center">
                             <img
