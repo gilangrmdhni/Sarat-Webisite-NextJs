@@ -178,7 +178,7 @@ const HomePage = () => {
                                         </div>
                                     </Link>
                                     {/* Card 3 - Riwayat Sarat */}
-                                    <Link href={isTimeValid && user ? "/HistorySarat" : "/Login"}>
+                                    <Link href={user ? "/HistorySarat" : "/Login"}>
                                         <div className={`bg-white shadow-lg rounded-lg overflow-hidden flex flex-col h-54 ${isTimeValid ? 'hover:shadow-2xl transition-shadow duration-300 transform hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}>
                                             <div className="flex items-center justify-center h-32">
                                                 <div className="relative h-32 w-32 sm:h-40 sm:w-40">
