@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../pages/context/authContext';
-import { useRouter } from 'next/router';
 
 const LoginForm = ({ onLogin, showError, error }) => {
   const [username, setUsername] = useState('');
@@ -50,12 +48,12 @@ const LoginForm = ({ onLogin, showError, error }) => {
           disabled={!username || !password} type="submit" className="w-full py-2 mt-4 font-semibold disabled:bg-slate-400 text-white bg-red-700 rounded-md hover:bg-red-800">
           Login
         </button>
+        {showError && (
+          <div className="fixed bottom-0 right-0 mb-4 mr-4 p-4 bg-red-500 text-white rounded-md">
+            {error}
+          </div>
+        )}
       </form>
-      {showError && (
-        <div className="fixed bottom-0 right-0 mb-4 mr-4 p-4 bg-red-500 text-white rounded-md">
-          {error}
-        </div>
-      )}
     </div>
   );
 };

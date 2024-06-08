@@ -20,13 +20,13 @@ const LoginPage = () => {
         try {
             await login({ username, password });
             setShowError(false);
-            router.push('/HomePage');
+            if (localStorage.getItem('token')) {
+                router.push('/HomePage');
+            }
         } catch (error) {
             console.error('Login error:', error.message);
             setError('Username atau password salah. Silakan coba lagi.');
             setShowError(true);
-
-            // Hide the error after 3 seconds
             setTimeout(() => {
                 setShowError(false);
             }, 3000);
