@@ -18,6 +18,7 @@ const Presensi = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const [sessionOptions, setSessionOptions] = useState([]);
     const [institutionOptions, setInstitutionOptions] = useState([]);
@@ -41,10 +42,14 @@ const Presensi = () => {
                     const { late_hour } = responseData.body;
                     setLateHour(late_hour);
                 } else {
-                    console.error('Failed to fetch late hour:', response.status, response.statusText);
+                    const errorText = `Failed to fetch late hour: ${response.status} ${response.statusText}`;
+                    console.error(errorText);
+                    setErrorMessage(errorText);
                 }
             } catch (error) {
-                console.error('Error fetching late hour:', error);
+                const errorText = `Error fetching late hour: ${error.message}`;
+                console.error(errorText);
+                setErrorMessage(errorText);
             }
         };
 
@@ -64,10 +69,14 @@ const Presensi = () => {
                     const sessionData = responseData.body.details;
                     setSessionOptions(sessionData);
                 } else {
-                    console.error('API Error:', response.status, response.statusText);
+                    const errorText = `API Error: ${response.status} ${response.statusText}`;
+                    console.error(errorText);
+                    setErrorMessage(errorText);
                 }
             } catch (error) {
-                console.error('Error fetching session options:', error);
+                const errorText = `Error fetching session options: ${error.message}`;
+                console.error(errorText);
+                setErrorMessage(errorText);
             }
         };
 
@@ -86,10 +95,14 @@ const Presensi = () => {
                     const institutionData = await response.json();
                     setInstitutionOptions(institutionData.body);
                 } else {
-                    console.error('API Error:', response.status, response.statusText);
+                    const errorText = `API Error: ${response.status} ${response.statusText}`;
+                    console.error(errorText);
+                    setErrorMessage(errorText);
                 }
             } catch (error) {
-                console.error('Error fetching institution options:', error);
+                const errorText = `Error fetching institution options: ${error.message}`;
+                console.error(errorText);
+                setErrorMessage(errorText);
             }
         };
 
@@ -118,10 +131,14 @@ const Presensi = () => {
                 const responseData = await response.json();
                 setQuestions(responseData.body);
             } else {
-                console.error('API Error:', response.status, response.statusText);
+                const errorText = `API Error: ${response.status} ${response.statusText}`;
+                console.error(errorText);
+                setErrorMessage(errorText);
             }
         } catch (error) {
-            console.error('Error fetching questions:', error);
+            const errorText = `Error fetching questions: ${error.message}`;
+            console.error(errorText);
+            setErrorMessage(errorText);
         }
     };
 
@@ -143,7 +160,7 @@ const Presensi = () => {
 
     const handleNextPage = async () => {
         if (currentPage === 1) {
-            if (!formData.session_detail_id || !formData.parent_type || !formData.parent_phone || !formData.start_time || !formData.institution_id ) {
+            if (!formData.session_detail_id || !formData.parent_type || !formData.parent_phone || !formData.start_time || !formData.institution_id) {
                 alert("Please fill in all required fields.");
                 return;
             }
@@ -248,8 +265,9 @@ const Presensi = () => {
                 });
             } catch (error) {
                 console.error('Error during form submission:', error);
-                setError('Gagal menyimpan data. Silakan coba lagi.');
-                setErrorMessage(error.message || 'Terjadi kesalahan. Silakan coba lagi.');
+                const errorText = error.message || 'Gagal menyimpan data. Silakan coba lagi.';
+                setError(errorText);
+                setErrorMessage(errorText);
                 setShowPopup(true);
             } finally {
                 setLoading(false);

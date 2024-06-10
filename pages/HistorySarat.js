@@ -8,13 +8,25 @@ import Link from 'next/link';
 
 const History = () => {
     const { user } = useAuth();
-    const [history, setHistory] = useState(null); // Initialize with null
+    const [history, setHistory] = useState([]); // Initialize with an empty array
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const router = useRouter();
 
     useEffect(() => {
         const fetchHistory = async () => {
+            let userId;
+            if (user && user.id) {
+                userId = user.id;
+            } else {
+                userId = localStorage.getItem('user_id');
+                if (!userId) {
+                    setError('Anda harus login untuk melihat riwayat');
+                    setLoading(false);
+                    return;
+                }
+            }
+
             setLoading(true);
             setError(null);
 
@@ -26,7 +38,7 @@ const History = () => {
             }
 
             try {
-                const response = await fetch('https://api.nusa-sarat.nuncorp.id/api/v1/session/report?user_id=24', {
+                const response = await fetch(`https://api.nusa-sarat.nuncorp.id/api/v1/session/report?user_id=${userId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },
@@ -47,7 +59,7 @@ const History = () => {
         };
 
         fetchHistory();
-    }, []);
+    }, [user]);
 
     return (
         <Layout>
@@ -67,13 +79,13 @@ const History = () => {
                     {error && <p className="text-red-600 mb-4">{error}</p>}
                     {!loading && !error && (
                         <>
-                            {history === null || history.length === 0 ? (
+                            {history.length === 0 ? (
                                 <p className="text-center text-gray-600">Tidak ada data riwayat sesi yang tersedia.</p>
                             ) : (
                                 <div className="space-y-4">
                                     {history.map((session) => (
                                         <Link href={`/history/${session.id}`} key={session.id} legacyBehavior>
-                                            <a className="block bg-gray-100 p-4 rounded-lg shadow-inner hover:bg-gray-200">
+                                            <a className={`block p-4 rounded-lg shadow-inner hover:bg-gray-200 ${session.flag === 'PRE_TEST' ? 'bg-blue-100' : 'bg-green-100'}`}>
                                                 <div className="mb-2">
                                                     <label className="block text-sm font-semibold text-gray-600 mb-1">Judul Sesi:</label>
                                                     <p className="text-lg text-gray-800 font-semibold">{session.session_detail.title}</p>
@@ -89,6 +101,11 @@ const History = () => {
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-600 mb-1">Waktu Selesai:</label>
                                                     <p className="text-lg text-gray-800 font-semibold">{session.end_time || '-'}</p>
+                                                </div>
+                                                <div className="mt-2">
+                                                    <span className={`px-2 py-1 text-sm font-semibold rounded ${session.flag === 'PRE_TEST' ? 'bg-blue-500 text-white' : 'bg-green-500 text-white'}`}>
+                                                        {session.flag === 'PRE_TEST' ? 'Pretest' : 'Presensi'}
+                                                    </span>
                                                 </div>
                                             </a>
                                         </Link>

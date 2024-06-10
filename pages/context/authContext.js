@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
       });
       if (response.ok) {
         const profileData = await response.json();
-        setUser(profileData.body); // Set profile data to user state
+        setUser(profileData.body); 
       } else {
         console.error('Failed to fetch profile:', response.statusText);
         setError('Failed to fetch profile');
@@ -46,7 +46,9 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const responseData = await response.json();
         const token = responseData.body.token;
+        const userId = responseData.body.user_id;
         localStorage.setItem('token', token);
+        localStorage.setItem('user_id', userId); // Save user_id to local storage
         fetchProfile(token); 
       } else {
         const errorData = await response.json();
@@ -63,6 +65,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user_id'); 
     setUser(null);
   };
 
